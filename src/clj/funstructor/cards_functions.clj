@@ -11,7 +11,8 @@
    :value nil})
 
 (defn- make-player-state [opponent]
-  {:opponent opponent
+  {:ready false
+   :opponent opponent
    :cards []
    :funstruct [(gap)]})
 
@@ -26,7 +27,7 @@
   (keys (:players game)))
 
 (defn mark-player-ready [game player]
-  (assoc-in [:players player :ready] true))
+  (assoc-in game [:players player :ready] true))
 
 (defn both-players-ready [game]
   (let [[p1 p2] (get-game-players game)]

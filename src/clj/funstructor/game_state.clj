@@ -33,9 +33,11 @@
 (defn get-game [global-state game-id]
   (get-in global-state [:games game-id]))
 
-(defn update-game [global-state game-uuid game-map]
-  (-> global-state
-      (assoc-in [:games] {game-uuid game-map})))
+(defn add-game [global-state game-id game]
+  (assoc-in global-state [:games game-id] game))
+
+(defn update-game [global-state game-uuid update-func & args]
+  (apply update-in global-state [:games game-uuid] update-func args))
 
 (defn get-pending-pair [global-state]
   (let [pending (get-pending-players global-state)]
@@ -45,5 +47,5 @@
 (defn remove-from-pending [global-state & uuids]
   (update-in global-state [:pending] set/difference uuids))
 
-(defn update-global-state [new-state]
-  (swap! global-state (fn [_] new-state)))
+(defn update-global-state [f & args]
+  (apply swap! global-state f args))
