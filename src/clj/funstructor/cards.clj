@@ -172,6 +172,31 @@ and take 5 from deck"
     :type :action
     :weight 10
     :img "action_equality_3.svg"}
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; Duration
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   :duration-luck-1
+   {:name "Luck v1.0"
+    :description
+    "increases your chances for getting third card to 75%. Lasts 3 turns"
+    :target :self
+    :type :duration
+    :weight 10
+    :turns-left 3
+    :img "duration_luck_1.svg"}
+
+   :duration-luck-2
+   {:name "Luck v2.0"
+    :description
+    "increases your chances for getting third card to 100%. Lasts 3 turns"
+    :target :self
+    :type :duration
+    :weight 10
+    :turns-left 3
+    :img "duration_luck_2.svg"}
+
    
    })
 

@@ -14,7 +14,8 @@
   {:ready false
    :opponent opponent
    :cards []
-   :funstruct [(gap)]})
+   :funstruct [(gap)]
+   :board []})
 
 (defn make-game [p1 p2]
   {:players
@@ -51,15 +52,25 @@
 (defn get-cards [game player]
   (get-in game [:players player :cards]))
 
+(defn get-board [game player]
+  (get-in game [:players player :board]))
+
 (defn- apply-to-cards
   "Get access to cards"
   [game-map player-key]
   (partial update-in game-map [:players player-key :cards]))
 
+
 (defn- apply-to-funstruct
   "Get access to funstruct"
   [game-map player-key]
   (partial update-in game-map [:players player-key :funstruct]))
+
+(defn- apply-to-board
+  "Get access to cards"
+  [game-map player-key]
+  (partial update-in game-map [:players player-key :board]))
+
 
 ;; Cards Accessor
 
@@ -90,6 +101,62 @@
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
 
+(defn end-turn-for-player [game]
+  (-> game
+      (assoc :current-turn (get-opponent game (:current-turn game)))
+      (update-in [:turn-ends] inc)))
+
+(defn- decrement-duration-for-player [game player]
+  ((apply-to-board game player)
+   (fn [b]
+     (->> b
+          (mapv (fn [c]
+                  (update-in c [:turns-left] dec))) ;; decrement turns
+          (filterv (fn [c]
+                     (> (get-in c [:turns-left]) 0)))))))
+
+(defn- decrement-durations [game]
+  (let [[p1 p2] (get-game-players game)]
+    (-> game
+        (decrement-duration-for-player p1)
+        (decrement-duration-for-player p2)
+        )))
+
+(defn init-game [game-map]
+  (let [players (get-players game-map)]
+    (reduce (fn [m player]
+              (take-cards m player start-cards-num))
+            game-map
+            players)))
+
+(defn- get-luck-cards-chances [game player]
+  (let [chances {:duration-luck-1 75
+                 :duration-luck-2 100}]
+    (->> (get-board game player)
+         (mapv :key)
+         (filterv (fn [e] (contains? chances e)))
+         (mapv chances))))
+
+;; TODO rewrite it's awful
+(defn third-card-winner [game]
+  (let [[p1 p2] (get-players game)
+        p1-luck-cards (get-luck-cards-chances game p1)
+        p2-luck-cards (get-luck-cards-chances game p2)]
+    (let [p1max (apply max 0 p1-luck-cards)
+          p2max (apply max 0 p2-luck-cards)]
+      (cond
+       (= p1max p2max) (rand-nth [p1 p2])
+       
+       (> p1max p2max)
+       (let [r (rand-int 100)]
+         (if (<= r p1max) p1 p2))
+       
+       :else
+       (let [r (rand-int 100)]
+         (if (<= p2max r) p2 p1))))))
+
+
+
 (defn end-turn [game-map]
 ; allow only if two player finished their turn :turn-ends-2
   (let [[p1 p2] (get-players game-map)]
@@ -97,11 +164,15 @@
         (assoc-in [:turn-ends] 0)
         (take-cards p1 cards-per-turn)
         (take-cards p2 cards-per-turn)
+        ;; decrement durations
+        (decrement-durations)
         ;; random card
-        (take-card (rand-nth [p1 p2]) (c/next-card))
+        (take-card (third-card-winner game-map) (c/next-card))
         ;; increment turn num
         (update-in [:turn] inc)
         )))
+
+
 
 ;; Functions to operate on game state
 
@@ -111,8 +182,13 @@
       (derive :terminal-right-paren :terminal)
       (derive :terminal-left-square :terminal)
       (derive :terminal-right-square :terminal)
+      
       (derive :terminal-id :terminal-param)
-      (derive :terminal-num :terminal-param)))
+      (derive :terminal-num :terminal-param)
+
+      (derive :duration-luck-1 :duration)
+      (derive :duration-luck-2 :duration)
+      ))
 
 (defmulti apply-card
   "Modify game-state map and return this map"
@@ -236,6 +312,22 @@
         (delete-all-cards opp))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Durations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod apply-card
+  :duration
+  [game-map player-key card & args]
+  ((apply-to-board game-map player-key)
+   (fn [v]
+     (let [c (get-in c/cards [card])]
+       (conj v {:key card
+                :turns-left (:turns-left c)})))))
+
+;;; API
+
+
 (defn use-card
   "Player Key:  UUID of player
      Card Pos:  index of card in :cards vector
@@ -249,17 +341,7 @@
 
       ))
 
-(defn end-turn-for-player [game]
-  (-> game
-      (assoc :current-turn (get-opponent game (:current-turn game)))
-      (update-in [:turn-ends] inc)))
 
-(defn init-game [game-map]
-  (let [players (get-players game-map)]
-    (reduce (fn [m player]
-              (take-cards m player start-cards-num))
-            game-map
-            players)))
 
 ;; Examples
 ;; Use :terminal
