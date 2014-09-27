@@ -114,6 +114,19 @@
                     [(gap)]
                     (drop pos funstruct)))))))
 
+(defmethod apply-card
+  :mutator-shot
+  [game-map player-key card & args]
+  (let [[pos & _] args]
+    ((apply-to-funstruct game-map
+                         (get-opponent-uuid game-map player-key))
+     (fn [funstruct]
+       (assoc funstruct pos (gap))))))
+
+
+
+
+
 ;; Cards Accessor
 
 (defn- take-card

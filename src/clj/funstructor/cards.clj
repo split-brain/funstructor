@@ -12,7 +12,8 @@
 
     :mutator-left-gap
     :mutator-right-gap
-    :mutator-position-gap})
+    :mutator-position-gap
+    :mutator-shot})
 
 (def cards
   {
@@ -111,7 +112,16 @@
     :type :mutator
     :weight 100
     :img "mutator_pos_gap.svg"}
-   
+
+   :mutator-shot
+   {:name "Shot"
+    :description
+    "remove terminal from the opponents funstruct"
+    :target :opponent
+    :type :mutator
+    :weight 50
+    :img "mutator_shot.svg"}
+
    })
 
 (defn- in? [n a b]
