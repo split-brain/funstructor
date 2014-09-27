@@ -10,7 +10,7 @@
 ;;   (funstructor.commands/pending-checker))
 
 (defn add-channel [channel uuid]
-  (swap! global-state update-in [:uuid-channel-map] assoc channel uuid))
+  (swap! global-state update-in [:uuid-channel-map] assoc uuid channel))
 
 (defn add-pending [uuid]
   (swap! global-state update-in [:pending] conj uuid))
@@ -46,3 +46,6 @@
   {p1 (make-player-state)
    p2 (make-player-state)
    :current-turn p1})
+
+(defn get-opponent-uuid [game uuid]
+  (first (disj (set (filter string? (keys game))) uuid)))
