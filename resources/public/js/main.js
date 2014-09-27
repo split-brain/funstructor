@@ -5,6 +5,13 @@ var PORT     = location.port;
 
 var funs = funs || {};
 
+// GAME STATE
+(function(funs){
+    funs.state = {
+        
+    };
+})(funs);
+
 // WEB SOCKET
 (function(funs){
     var ws;
@@ -46,7 +53,7 @@ var funs = funs || {};
                 events  = funs.websocket._events[message.type];
             if(events){
                 events.forEach(function(callback){
-                    callback(message);
+                    callback(message.data);
                 });
             }
         };
@@ -61,11 +68,15 @@ var funs = funs || {};
     var ROUTES = {
         'game-request-ok' :  function(data){
             console.log('game-request-ok', data);
+            funs.state.uuid = data.uuid;
         },
         'start-game' : function(data){
             console.log('start-game', data);
             ws.send({
-                type: 'start-game-ok'
+                type: 'start-game-ok',
+                data: {
+                    'game-id' : data['game-id']
+                }
             });
         }
     };
@@ -91,12 +102,17 @@ var funs = funs || {};
         ,"terminal_right_paren.svg"
         ,"terminal_right_square.svg"
     ];
+    var requested = false;
     
     drawCards();
     
     var $form = $('#startForm');
     $form.on('submit', function(e){
         e.preventDefault();
+        if(requested){
+            return;
+        }
+//        requested = true;
         funs.websocket.send({type:"game-request"});
     });
     
@@ -107,11 +123,9 @@ var funs = funs || {};
         var cards = React.createClass({
             render: function() {
                 var R = React.DOM;
-                var d = 90;
+                var d = 75;
                 var cards = this.props.cards;
                 
-                console.log('cards',cards);
-
                 return R.div({
                     key: 'cards'
                 }, cards.map(function(card, i){
@@ -136,6 +150,10 @@ var funs = funs || {};
             cards : CARDS
         }), flyingCards);
     }
+    
+    function wait(){
+        
+    };
 })(funs);
 
 (function(funs){
