@@ -3,6 +3,27 @@
    [funstructor.utils :as u]
    [funstructor.cards :as c]))
 
+(defn- gap []
+  {:terminal :gap
+   :value nil})
+
+(defn- make-player-state [opponent]
+  {:opponent opponent
+   :cards []
+   :funstruct [(gap)]})
+
+(defn make-game [p1 p2]
+  {:players
+   {p1 (make-player-state p2)
+    p2 (make-player-state p1)}
+   :current-turn p1})
+
+(defn get-opponent-uuid [game uuid]
+  (get-in game [:players uuid :opponent]))
+
+(defn get-player-state [game uuid]
+  (get-in game [:players uuid]))
+
 (defn- apply-to-cards
   "Get access to cards"
   [game-map player-key]
@@ -12,9 +33,6 @@
   "Get access to funstruct"
   [game-map player-key]
   (partial update-in game-map [:players player-key :funstruct]))
-
-(defn- gap []
-  {:terminal :gap})
 
 ;; Functions to operate on game state
 
@@ -100,9 +118,9 @@
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
 
+(defn end-turn-for-player [game-map player-key])
 
-
-
+(defn end-turn [game-map])
 
 
 (defn use-card

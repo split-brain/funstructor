@@ -4,6 +4,7 @@
 
             [funstructor.game-state :refer :all]
             [funstructor.cards :as cards]
+            [funstructor.cards-functions :as f]
             [funstructor.utils :refer :all]))
 
 (defn encode-command [command]
@@ -35,21 +36,21 @@
                                    :enemy uuid1}]
                        :channels channel2)
 
-        (update-global-state (add-game (current-global-state) game-id (make-game uuid1 uuid2)))
+        (update-global-state (add-game (current-global-state) game-id (f/make-game uuid1 uuid2)))
 
         (apply remove-from-pending pending-pair)))
     (recur)))
 
 (defn make-update-info [player-uuid game-state]
-  (let [player-state (game-state player-uuid)
-        opponent-uuid (get-opponent-uuid game-state player-uuid)]
+  (let [player-state (f/get-player-state player-uuid)
+        opponent-uuid (f/get-opponent-uuid game-state player-uuid)]
     (-> (update-in player-state
                    [:cards]
                    (fn [cards]
                      (map cards/cards cards)))
         (assoc :current-turn (:current-turn game-state))
-        (assoc :enemy-cards-num (count (:cards (game-state opponent-uuid))))
-        (assoc :enemy-funstruct (:funstruct (game-state opponent-uuid))))))
+        (assoc :enemy-cards-num (count (:cards (f/get-player-state opponent-uuid))))
+        (assoc :enemy-funstruct (:funstruct (f/get-player-state opponent-uuid))))))
 
 (defmulti handle-command (fn [command channel] (:type command)))
 (defmethod handle-command "game-request" [command channel]
@@ -73,7 +74,3 @@
 
 (defmethod handle-command :default [command channel]
   (printerr "Unrecognized command: " command))
-
-
-
-
