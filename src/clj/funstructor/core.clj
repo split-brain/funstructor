@@ -24,7 +24,8 @@
       (recur))))
 
 (defroutes app-routes
-  (GET "/" [] (redirect "index.html"))
+  (GET "/cljs" [] (redirect "index-cljs.html"))
+  (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/ws" [] (-> ws-handler
                     (wrap-websocket-handler {:format :str})))
   (route/resources "/")
