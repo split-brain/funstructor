@@ -11,7 +11,9 @@
   (generate-string command))
 
 (defn decode-command [in-str]
-  (parse-string in-str true))
+  (try
+    (parse-string in-str true)
+    (catch java.io.IOException e {:type :decode-error :data in-str})))
 
 (defn send-commands [& {:keys [commands channels]}]
   (doseq [channel channels]
