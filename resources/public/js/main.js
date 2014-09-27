@@ -112,6 +112,7 @@ var funs = funs || {};
                     var xr = Math.round(Math.random() * d);
                     var yr = Math.round(Math.random() * d);
                     var zr = Math.round(Math.random() * d);
+                    
                     var style = {
                         transform: 'rotateX( ' + xr + 'deg ) rotateY( ' + yr + 'deg ) rotateZ( ' + zr + 'deg ) ',
                         left : (200 + Math.random() * (width - 400)) + 'px',
