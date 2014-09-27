@@ -97,7 +97,7 @@
         card-idx (get-in command [:data :card-idx])
         target (get-in command [:data :target])
         funstr-idx (get-in command [:data :funstruct-idx])]
-    (update-global-state update-game game-id use-card player-id card-idx funstr-idx)
+    (update-global-state update-game game-id f/use-card player-id card-idx funstr-idx)
     (send-game-updates game-id)))
 
 (defmethod handle-command "end-turn" [command channel]
