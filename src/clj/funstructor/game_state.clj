@@ -1,25 +1,26 @@
-(ns funstructor.game-state
+(ns funstructor.global-state
   (:require
    funstructor.commands
    [clojure.set :as set]))
 
-(def game-state (atom {:pending #{}
-                       :uuid-channel-map {}}))
+(def global-state (atom {:pending #{}
+                         :uuid-channel-map {}
+                         :games {}}))
 
-(defn init-game-state []
+(defn init-global-state []
   (funstructor.commands/pending-checker))
 
 (defn add-channel [channel uuid]
-  (swap! game-state update-in [:uuid-channel-map] assoc channel uuid))
+  (swap! global-state update-in [:uuid-channel-map] assoc channel uuid))
 
 (defn add-pending [uuid]
-  (swap! game-state update-in [:pending] conj uuid))
+  (swap! global-state update-in [:pending] conj uuid))
 
 (defn pending-players []
-  (:pending @game-state))
+  (:pending @global-state))
 
 (defn channel-for-uuid [uuid]
-  (get-in @game-state [:uuid-channel-map uuid]))
+  (get-in @global-state [:uuid-channel-map uuid]))
 
 (defn get-pending-pair []
   (let [pending-players (pending-players)]
@@ -27,4 +28,21 @@
       [(first pending-players) (second pending-players)])))
 
 (defn remove-from-pending [& uuids]
-  (swap! game-state update-in [:pending] set/difference uuids))
+  (swap! global-state update-in [:pending] set/difference uuids))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GAME LOGIC
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn gap []
+  {:type :gap})
+
+(defn make-player-state []
+  {:cards []
+   :funstruct [(gap)]})
+
+(defn make-game [p1 p2]
+  {p1 (make-player-state)
+   p2 (make-player-state)
+   :current-turn p1})
