@@ -8,22 +8,17 @@
             [clojure.core.async :refer [<! >! put! close! go-loop]]
             [compojure.core :refer [defroutes GET]]))
 
-
-
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (println "Opened connection from" (:remote-addr req))
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
-      (prn "Message received:" msg)
-      ;; (>! ws-channel (if error
-      ;;                  (format "Error: '%s'." (pr-str msg))
-      ;;                  {:received (format "You passed: '%s' at %s." (pr-str message) (java.util.Date.))}))
+
       (recur))))
 
 (defroutes app-routes
   (GET "/" [] (redirect "index.html"))
   (GET "/ws" [] (-> ws-handler
-                    (wrap-websocket-handler)))
+                    (wrap-websocket-handler {:format :json-kw})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
