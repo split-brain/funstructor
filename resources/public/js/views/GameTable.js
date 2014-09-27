@@ -37,19 +37,51 @@ funs.Views.GameTable = React.createClass({
 funs.Views.YourField = React.createClass({
     render: function() {
         var R = React.DOM;
+        var functors = this.props.children;
+
+        var funList = [],
+            l = functors.length;
+        
+        functors.forEach(function(f,i){
+            f.i = i;
+            funList.push(funs.Views.Func(f));
+            if(i < (l - 1) || true){
+                funList.push(funs.Views.Func({
+                    terminal : 'space',
+                    value : null,
+                    i : i
+                }));
+            }
+        });
 
         return R.div({
             className: 'field your'
-        },this.props.children);
+        },funList);
     }
 });
 funs.Views.OpponentField = React.createClass({
     render: function() {
         var R = React.DOM;
+        var functors = this.props.children;
+
+        var funList = [],
+            l = functors.length;
+        
+        functors.forEach(function(f,i){
+            f.i = i;
+            funList.push(funs.Views.Func(f));
+            if(i < (l - 1) || true){
+                funList.push(funs.Views.Func({
+                    terminal : 'space',
+                    value : null,
+                    i : i
+                }));
+            }
+        });
 
         return R.div({
             className: 'field opponent'
-        },this.props.children);
+        },funList);
     }
 });
 
@@ -60,7 +92,9 @@ funs.Views.YourHand = React.createClass({
 
         var cards = cardModels.map(function(c, i){
             return R.div({
-                className: 'card'
+                className : 'card',
+                draggable : "true",
+                ondragstart : '"funs.ondragstart(event)"'
             }, funs.Views.Card({
                     style : {},
                     url   : c.img
@@ -75,10 +109,21 @@ funs.Views.YourHand = React.createClass({
 funs.Views.OpponentHand = React.createClass({
     render: function() {
         var R = React.DOM;
+        var number = this.props.children;
+        var cards = [];
+
+        for (var i = 0, max = number; i < max; i++) {
+            cards.push(R.div({
+                className: 'card'
+            }, funs.Views.Card({
+                    style : {},
+                    url   : 'back.svg'
+                })));
+        }
 
         return R.div({
             className: 'hand opponent'
-        },this.props.children);
+        }, cards);
     }
 });
 
@@ -102,5 +147,33 @@ funs.Views.Task = React.createClass({
     }
 });
 
+funs.Views.Func = React.createClass({
+    render: function() {
+        var R = React.DOM;
+        var text;
+        var terminal = this.props.terminal;
+        console.log('FUNC', this.props);
+        
+        switch(terminal){
+            case 'gap':
+                text = '_';
+                break;
+            case 'space':
+                text = ' ';
+                break;
+            default :
+                text = '';
+                break;
+        }
+        
+        return R.span({
+            className       : 'terminal ' + terminal + ' i_' + this.props.i,
+            'data-index'    : this.props.i,
+            'data-terminal' : terminal,
+            'onDragOver'    : funs.ondragover,
+            'onDrop'        : funs.ondrop
+        },text);
+    }
+});
 
 

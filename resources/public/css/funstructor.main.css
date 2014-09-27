@@ -283,36 +283,40 @@ body > footer{
 .field, .hand, .log, .task{
     position: absolute;
 }
-.field.your{
+.field{
+    text-align: left;
     left: 30px;
     right: 330px;
-    bottom: 210px;
+    background-color: rgba(0,0,0, 0.7);
     height: calc(50% - 230px);
-    background-color: rgba(100,0,0, 0.2);
+    color: #FFFF00;
+    font-size: 26px;
+    line-height: 28px;
+    padding: 10px;
+}
+.field.your{
+    bottom: 210px;
 }
 .field.opponent{
-    left: 30px;
-    right: 330px;
     top: 210px;
-    height: calc(50% - 230px);
-    background-color: rgba(100,0,0, 0.2);
 }
 .hand.your{
     left: 0px;
     right: 300px;
     bottom: 0px;
     height: 180px;
-    background-color: rgba(100,150,0, 0.2);
     overflow-x: scroll;
     overflow-y: hidden;
     white-space: nowrap;
 }
 .hand.opponent{
     left: 0;
-    right: 0;
+    right: 300px;
     top: 0;
     height: 180px;
-    background-color: rgba(100,150,0, 0.2);
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 .task{
     right: 0;
@@ -323,22 +327,39 @@ body > footer{
 }
 .log{
     right: 0;
-    bottom: 180px;
-    top: 180px;
+    bottom: 210px;
+    top: 30px;
     width: 300px;
     background-color: rgba(100,0,255, 0.8);
 }
 
+.hand.opponent .card,
 .hand.your .card{
     display: inline-block;
     width: 120px;
     height: 180px;
+    margin-right: 10px;
+    cursor: pointer;
 }
+.hand.opponent .card:last-child,
+.hand.your .card:last-child{
+    margin-right: 0px;
+}
+.hand.opponent .card > div,
 .hand.your .card > div{
     width: 120px;
     height: 180px;
 }
+.hand.opponent .card > div > img,
 .hand.your .card > div > img{
     width: 120px;
     height: 180px;
+}
+
+.terminal{
+    height: 28px;
+    display: inline-block;
+}
+.terminal.space{
+    width: 13px;
 }

@@ -105,6 +105,11 @@ var funs = funs || {};
             funs.stopLoading();
             funs.state.gameData = data;
             funs.switch(funs.Views.GameTable, data);
+            setTimeout(function(){
+                var $cards = $('.your.hand > .card');
+                var $func = $('.your.hand > .card');
+                $cards.attr('ondragstart', 'funs.ondragstart(event)');
+            }, 100);
         }
     };
 
@@ -139,21 +144,23 @@ var funs = funs || {};
     // MOCK
 //    funs.switch(funs.Views.GameTable, JSON.parse('{"type":"game-update","data":{"enemy-funstruct":[{"terminal":"gap","value":null}],"enemy-cards-num":6,"current-turn":"7902e56e-60aa-49f8-b589-471ae6d0b866","ready":true,"opponent":"7902e56e-60aa-49f8-b589-471ae6d0b866","cards":[{"description":"fill the gap on your funstruct with left square","name":"LEFT SQUARE","value":"left-square","type":"terminal","weight":100,"target":"self","img":"terminal_left_square.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with left paren","name":"Left Paren","value":"left-paren","type":"terminal","weight":100,"target":"self","img":"terminal_left_paren.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with integer number","name":"Number","value":"num","type":"terminal","weight":50,"target":"self","img":"terminal_num.svg"},{"description":"fill the gap on your funstruct with identifier, according to clojure regexp","name":"ID","value":"id","type":"terminal","weight":100,"target":"self","img":"terminal_id.svg"}],"funstruct":[{"terminal":"gap","value":null}]}}').data);
     
-    var $form = $('#startForm');
-    var $input = $form.find('.input > input').eq(0);
-    $input.focus();
-    $form.on('submit', function(e){
-        e.preventDefault();
-        if(requested){
-            return;
-        }
-        var name = $input.val();
-//        requested = true;
-        funs.websocket.send({
-            type: "game-request",
-            data: {
-                'user-name' : name
+    $(function(){
+        var $form = $('#startForm');
+        var $input = $form.find('.input > input').eq(0);
+        $input.focus();
+        $form.on('submit', function(e){
+            e.preventDefault();
+            if(requested){
+                return;
             }
+            var name = $input.val();
+    //        requested = true;
+            funs.websocket.send({
+                type: "game-request",
+                data: {
+                    'user-name' : name
+                }
+            });
         });
     });
     
@@ -195,6 +202,22 @@ var funs = funs || {};
             cards : CARDS
         }), flyingCards);
     }
+})(funs);
+
+// DRAG_N_DROP
+(function(funs){
+    funs.ondragstart = function(e){
+        console.log('ondragstart', e);
+    };
+    funs.ondrag = function(e){
+        console.log('ondrag', e);
+    };
+    funs.ondragover = function(e){
+        console.log('ondragover', e);
+    };
+    funs.ondrop = function(e){
+        console.log('ondrop', e);
+    };
 })(funs);
 
 (function(funs){
