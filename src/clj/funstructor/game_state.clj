@@ -4,31 +4,39 @@
 
 (def global-state (atom {:pending #{}
                          :uuid-channel-map {}
+                         :channel-uuid-map {}
                          :games {}}))
 
 ;; (defn init-game-state []
 ;;   (funstructor.commands/pending-checker))
 
-(defn add-channel [channel uuid]
-  (swap! global-state update-in [:uuid-channel-map] assoc uuid channel))
+(defn current-global-state []
+  @global-state)
 
-(defn add-pending [uuid]
-  (swap! global-state update-in [:pending] conj uuid))
+(defn add-channel [global-state channel uuid]
+  (-> global-state
+      (update-in [:uuid-channel-map] assoc uuid channel)
+      (update-in [:channel-uuid-map] assoc channel uuid)))
 
-(defn pending-players []
-  (:pending @global-state))
+(defn add-pending [global-state uuid]
+  (update-in global-state [:pending] conj uuid))
 
-(defn channel-for-uuid [uuid]
-  (get-in @global-state [:uuid-channel-map uuid]))
+(defn pending-players [global-state]
+  (:pending global-state))
 
-(defn get-pending-pair []
-  (let [pending-players (pending-players)]
-    (when (>= 2 (count pending-players))
+(defn channel-for-uuid [global-state uuid]
+  (get-in global-state [:uuid-channel-map uuid]))
+
+(defn get-pending-pair [global-state]
+  (let [pending (pending-players global-state)]
+    (when (>= 2 (count pending))
       [(first pending-players) (second pending-players)])))
 
-(defn remove-from-pending [& uuids]
-  (swap! global-state update-in [:pending] set/difference uuids))
+(defn remove-from-pending [global-state & uuids]
+  (update-in global-state [:pending] set/difference uuids))
 
+(defn update-global-state [new-state]
+  (swap! global-state (fn [_] new-state)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GAME LOGIC
@@ -48,4 +56,4 @@
    :current-turn p1})
 
 (defn get-opponent-uuid [game uuid]
-  (first (disj (set (filter string? (keys game))) uuid)))
+  (first (disj (set (filter #(= (class %) java.util.UUID) (keys game))) uuid)))

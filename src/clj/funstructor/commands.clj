@@ -56,11 +56,15 @@
   (let [uuid (gen-uuid)]
     (add-channel channel uuid)
     (add-pending uuid)
-    (println "Global state: " @global-state)
+    (-> (current-global-state)
+        (add-channel channel uuid)
+        (add-pending)
+        (update-global-state))
+    (println "Global state: " (current-global-state))
     (send-commands :commands [{:type :game-request-ok
-                               :uuid uuid
-                               :pending (pending-players)}]
-                   :channels (map channel-for-uuid (pending-players)))))
+                               :data {:uuid uuid
+                                      :pending (pending-players (current-global-state))}}]
+                   :channels (map channel-for-uuid (pending-players (current-global-state))))))
 
 (defmethod handle-command "start-game-ok" [command channel]
   (let []
