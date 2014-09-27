@@ -122,6 +122,31 @@
     :weight 50
     :img "mutator_shot.svg"}
 
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; Actions
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   :action-thief-1
+   {:name "Thief v1.0"
+    :description
+    "steal random card from opponent's hand"
+    :target :opponent
+    :type :action
+    :weight 40
+    :img "action_thief_1.svg"}
+
+   
+   :action-discard-1
+   {:name "Discard v1.0"
+    :description
+    "opponent discards random card"
+    :target :opponent
+    :type :action
+    :weight 40
+    :img "action_discard_1.svg"}
+
+   
    })
 
 (defn- in? [n a b]
