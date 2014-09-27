@@ -6,7 +6,18 @@
    "(defn abs [x] (if (pos? x) x (- x)))"
 
    :even?
-   ""})
+   "(defn even? [x] (zero? (mod x 2)))"
+
+   :odd?
+   "(defn odd? [x] (= 1 (mod x 2)))"
+
+   :sum-of-squares
+   "(defn sum-of-squares [coll] (reduce + (map square coll)))"
+
+   :factorial
+   "(defn factorial [num] (reduce * (range 1 (inc num))))"
+
+   })
 
 (def id-regex "[a-zA-Z\\?\\!\\+\\-\\*\\/][a-zA-Z\\?\\!\\+\\-\\*\\/0-9]*")
 
@@ -36,3 +47,15 @@
       (re-seq s)
       (#(map token->terminal %))
       (vec)))
+
+(defn get-two-random-funstructs []
+  (let [[f1 f2] (take 2 (shuffle (keys funstructs)))
+        s1 (get funstructs f1) s2 (get funstructs f2)]
+    [{:name f1 :raw s1 :funstruct (s->funstruct s1)}
+     {:name f2 :raw s2 :funstruct (s->funstruct s2)}]))
+
+(defn print-terminal-count []
+  (doseq [k (keys funstructs)]
+    (let [raw (get funstructs k)
+          funs (s->funstruct raw)]
+      (println k ":" (count funs)))))
