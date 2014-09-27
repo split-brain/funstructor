@@ -8,17 +8,22 @@
 
 ;; TODO card accessor
 
+(defn apply-to-cards
+  "Get access to clojure"
+  [game-map player-key]
+  (partial update-in game-map [player-key :cards]))
+
 (defn take-card
   "Add card to player state"
   [game-map player-key card]
-  (update-in game-map [player-key :cards]
-             (fn [v] (conj v card))))
+  ((apply-to-cards game-map player-key)
+   (fn [v] (conj v card))))
 
 (defn delete-card
   "Delete card from player state"
   [game-map player-key card-pos]
-  (update-in game-map [player-key :cards]
-             (fn [v] (u/delete-from-vector v card-pos))))
+  ((apply-to-cards game-map player-key)
+   (fn [v] (u/delete-from-vector v card-pos))))
 
 (defn use-card
   "Player Key:  UUID of player
