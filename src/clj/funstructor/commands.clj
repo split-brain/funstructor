@@ -67,6 +67,7 @@
                    :channels [c2])))
 
 (defmulti handle-command (fn [command channel] (:type command)))
+
 (defmethod handle-command "game-request" [command channel]
   (let [uuid (u/gen-uuid)]
     (update-global-state (comp #(add-channel % channel uuid)
@@ -89,6 +90,15 @@
     (when (f/both-players-ready (get-game (current-global-state) game-id))
       (update-global-state update-game game-id f/init-game)
       (send-game-updates game-id))))
+
+(defmethod handle-command "action" [command channel]
+  (let [game-id (u/uuid-from-string (get-in command [:data :game-id]))
+        player-id (uuid-for-channel (current-global-state) channel)
+        card-idx (get-in command [:data :card-idx])
+        target (get-in command [:data :target])
+        funstr-idx (get-in command [:data :funstruct-idx])]
+    (update-global-state update-game game-id use-card player-id card-idx funstr-idx)
+    (send-game-updates game-id)))
 
 (defmethod handle-command "end-turn" [command channel]
   (let [game-id (u/uuid-from-string (get-in command [:data :game-id]))
