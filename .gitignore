@@ -1,8 +1,7 @@
 target/
 .nrepl-port
 resources/public/js/
-
-
+.lein-failures
 
 # Emacs Gitignore
 
