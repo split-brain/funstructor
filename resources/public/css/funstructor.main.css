@@ -40,6 +40,10 @@ body > footer{
     clear: both;
 }
 
+.h20{
+    height: 20px;
+}
+
 #start{
     position: absolute;
     width: 100%;
