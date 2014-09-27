@@ -91,6 +91,8 @@
   ((apply-to-cards game-map player-key)
    (fn [v] (u/delete-from-vector v card-pos))))
 
+(defn- get-card [game-map player-key pos]
+  (get-in game-map [player-key :cards pos]))
 
 
 
@@ -103,9 +105,20 @@
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]
   (-> game-map
-      
-      ;; apply card
-      
+      ;; TODO validate such card is present
+      (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
       ;; delete card from player
+      (delete-card player-key card-pos)
       
       ))
+
+
+;; Examples
+;; Use :terminal
+;; (use-card :g :p 0 :position-in-funstruct)
+;; Use :terminal-param
+;; (use-card :g :p 0 :position-in-funstruct value)
+;; Use :mutator-left-paren, :mutator-right:paren
+;; (use-card :g :p 0)
+;; Use :mutator-position-gap
+;; (use-card :g :p 0 :position-after-in-funstruct)

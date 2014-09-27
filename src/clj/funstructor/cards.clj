@@ -91,7 +91,6 @@
     :type :mutator
     :img "mutator_pos_gap.svg"}
    
-   
    })
 
 (defn next-card []
