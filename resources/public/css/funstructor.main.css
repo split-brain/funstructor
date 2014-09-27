@@ -7,7 +7,9 @@ html, body{
     
     background: url(../img/back.png) repeat center;
 }
-
+div{
+    box-sizing: border-box;
+}
 body > header{
     box-sizing: border-box;
     background-color: #3179DE;
@@ -51,6 +53,138 @@ body > footer{
     margin: -110px 0 0 0;
     z-index: 3;
 }
+
+#loading{
+    position: absolute;
+    text-align: center;
+    box-sizing: border-box;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.7);
+}
+
+#loading .loader {
+  display: inline-block;
+  width: 100px;
+  height: 24px;
+    position: absolute;
+  border: 4px solid #FBFBFB;
+  top: 50%;
+  -webkit-animation: loader 4s infinite ease;
+  -moz-animation: loader 4s infinite ease;
+  -o-animation: loader 4s infinite ease;
+  -ms-animation: loader 4s infinite ease;
+  animation: loader 4s infinite ease;
+  margin-left: -50px;
+
+}
+
+#loading .loader-inner {
+  vertical-align: top;
+  display: inline-block;
+  background-color: #FBFBFB;
+  -webkit-animation: loader-inner 4s infinite ease-in;
+  -moz-animation: loader-inner 4s infinite ease-in;
+  -o-animation: loader-inner 4s infinite ease-in;
+  -ms-animation: loader-inner 4s infinite ease-in;
+  animation: loader-inner 4s infinite ease-in;
+  position: absolute;
+  height: 100%;
+    top: 0;
+    right: 0;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  
+  25% {
+    transform: rotate(180deg);
+  }
+  
+  50% {
+    transform: rotate(180deg);
+  }
+  
+  75% {
+    transform: rotate(360deg);
+  }
+  
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-inner {
+  0% {
+    width: 0%;
+  }
+  
+  25% {
+    width: 0%;
+  }
+  
+  50% {
+    width: 100%;
+  }
+  
+  75% {
+    width: 100%;
+  }
+  
+  100% {
+    width: 0%;
+  }
+}
+@-webkit-keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  
+  25% {
+    transform: rotate(180deg);
+  }
+  
+  50% {
+    transform: rotate(180deg);
+  }
+  
+  75% {
+    transform: rotate(360deg);
+  }
+  
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes loader-inner {
+  0% {
+    width: 0%;
+  }
+  
+  25% {
+    width: 0%;
+  }
+  
+  50% {
+    width: 100%;
+  }
+  
+  75% {
+    width: 100%;
+  }
+  
+  100% {
+    width: 0%;
+  }
+}
+
 #flyingCards{
     transform-style: preserve-3d;
     position: absolute;
@@ -107,6 +241,14 @@ body > footer{
     font-size: 16px;
     color: white;
     border: 3px solid black;
+    background-color: rgba(49,121,222,0.8);    
+}
+.button button:active,
+.button input:active{
+    background-color: rgba(79,181,242,1);    
+}
+.button button:hover,
+.button input:hover{
     background-color: rgba(49,121,222,1);    
 }
 
@@ -125,4 +267,78 @@ body > footer{
     font-size: 16px;
     line-height: 16px;
     border: 3px solid black;
+}
+
+#game{
+    position: absolute;
+    text-align: center;
+    box-sizing: border-box;
+    top: 46px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    overflow: hidden;
+}
+.field, .hand, .log, .task{
+    position: absolute;
+}
+.field.your{
+    left: 30px;
+    right: 330px;
+    bottom: 210px;
+    height: calc(50% - 230px);
+    background-color: rgba(100,0,0, 0.2);
+}
+.field.opponent{
+    left: 30px;
+    right: 330px;
+    top: 210px;
+    height: calc(50% - 230px);
+    background-color: rgba(100,0,0, 0.2);
+}
+.hand.your{
+    left: 0px;
+    right: 300px;
+    bottom: 0px;
+    height: 180px;
+    background-color: rgba(100,150,0, 0.2);
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+.hand.opponent{
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 180px;
+    background-color: rgba(100,150,0, 0.2);
+}
+.task{
+    right: 0;
+    bottom: 0px;
+    height: 180px;
+    width: 300px;
+    background-color: rgba(100,0,255, 0.2);
+}
+.log{
+    right: 0;
+    bottom: 180px;
+    top: 180px;
+    width: 300px;
+    background-color: rgba(100,0,255, 0.8);
+}
+
+.hand.your .card{
+    display: inline-block;
+    width: 120px;
+    height: 180px;
+}
+.hand.your .card > div{
+    width: 120px;
+    height: 180px;
+}
+.hand.your .card > div > img{
+    width: 120px;
+    height: 180px;
 }

@@ -12,6 +12,25 @@ var funs = funs || {};
     };
 })(funs);
 
+// VIEWS SWITCHER
+(function(funs){
+    funs.switch = function(view, options){
+        React.renderComponent(view(options), funs.$main[0]);
+    };
+})(funs);
+
+// LOADER
+(function(funs){
+    var $loading = $('<div id="loading"><span class="loader"><span class="loader-inner"></span></span></div>');
+    funs.startLoading = function(){
+        $loading.appendTo(funs.$body);
+        $loading.show();
+    };
+    funs.stopLoading = function(){
+        $loading.hide();
+    };
+})(funs);
+
 // WEB SOCKET
 (function(funs){
     var ws;
@@ -68,17 +87,24 @@ var funs = funs || {};
     var ROUTES = {
         'game-request-ok' :  function(data){
             console.log('game-request-ok', data);
+            funs.startLoading();
             funs.state.uuid = data.uuid;
         },
         'start-game' : function(data){
             console.log('start-game', data);
             funs.state['game-id'] = data['game-id'];
+            funs.state['task']    = data['task'] || 'no task yet';
             ws.send({
                 type: 'start-game-ok',
                 data: {
                     'game-id' : data['game-id']
                 }
             });
+        },
+        'game-update' : function(data){
+            funs.stopLoading();
+            funs.state.gameData = data;
+            funs.switch(funs.Views.GameTable, data);
         }
     };
 
@@ -90,6 +116,9 @@ var funs = funs || {};
 
 // START
 (function(funs){
+    funs.$body = $('body');
+    funs.$main = $('main').eq(0);
+
     // draw cards on a field
     var flyingCards = document.getElementById('flyingCards');
     var CARDS = [
@@ -107,13 +136,18 @@ var funs = funs || {};
     
     drawCards();
     
+    // MOCK
+//    funs.switch(funs.Views.GameTable, JSON.parse('{"type":"game-update","data":{"enemy-funstruct":[{"terminal":"gap","value":null}],"enemy-cards-num":6,"current-turn":"7902e56e-60aa-49f8-b589-471ae6d0b866","ready":true,"opponent":"7902e56e-60aa-49f8-b589-471ae6d0b866","cards":[{"description":"fill the gap on your funstruct with left square","name":"LEFT SQUARE","value":"left-square","type":"terminal","weight":100,"target":"self","img":"terminal_left_square.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with left paren","name":"Left Paren","value":"left-paren","type":"terminal","weight":100,"target":"self","img":"terminal_left_paren.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with integer number","name":"Number","value":"num","type":"terminal","weight":50,"target":"self","img":"terminal_num.svg"},{"description":"fill the gap on your funstruct with identifier, according to clojure regexp","name":"ID","value":"id","type":"terminal","weight":100,"target":"self","img":"terminal_id.svg"}],"funstruct":[{"terminal":"gap","value":null}]}}').data);
+    
     var $form = $('#startForm');
+    var $input = $form.find('.input > input').eq(0);
+    $input.focus();
     $form.on('submit', function(e){
         e.preventDefault();
         if(requested){
             return;
         }
-        var name = $form.find('input[type=text]').eq(0).val();
+        var name = $input.val();
 //        requested = true;
         funs.websocket.send({
             type: "game-request",
@@ -124,9 +158,8 @@ var funs = funs || {};
     });
     
     function drawCards(){
-        var $body = $('body');
-        var width  = $body.width();
-        var height = $body.height();
+        var width  = funs.$body.width();
+        var height = funs.$body.height();
         var cards = React.createClass({
             render: function() {
                 var R = React.DOM;
@@ -162,10 +195,6 @@ var funs = funs || {};
             cards : CARDS
         }), flyingCards);
     }
-    
-    function wait(){
-        
-    };
 })(funs);
 
 (function(funs){
