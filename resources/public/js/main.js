@@ -72,6 +72,7 @@ var funs = funs || {};
         },
         'start-game' : function(data){
             console.log('start-game', data);
+            funs.state['game-id'] = data['game-id'];
             ws.send({
                 type: 'start-game-ok',
                 data: {
@@ -112,8 +113,14 @@ var funs = funs || {};
         if(requested){
             return;
         }
+        var name = $form.find('input[type=text]').eq(0).val();
 //        requested = true;
-        funs.websocket.send({type:"game-request"});
+        funs.websocket.send({
+            type: "game-request",
+            data: {
+                'user-name' : name
+            }
+        });
     });
     
     function drawCards(){
@@ -132,9 +139,14 @@ var funs = funs || {};
                     var xr = Math.round(Math.random() * d);
                     var yr = Math.round(Math.random() * d);
                     var zr = Math.round(Math.random() * d);
+                    var transform = 'rotateX( ' + xr + 'deg ) rotateY( ' + yr + 'deg ) rotateZ( ' + zr + 'deg ) ';
                     
                     var style = {
-                        transform: 'rotateX( ' + xr + 'deg ) rotateY( ' + yr + 'deg ) rotateZ( ' + zr + 'deg ) ',
+                        '-moz-transform': transform,
+                        '-webkit-transform': transform,
+                        '-o-transform': transform,
+                        '-ms-transform': transform,
+                        transform: transform,
                         left : (200 + Math.random() * (width - 400)) + 'px',
                         top  : (200 + Math.random() * (height - 400)) + 'px'
                     };
