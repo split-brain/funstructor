@@ -26,3 +26,8 @@ Description is written using following pattern:
   - *enemy-cards-num* - number of cards that enemy has
   - *funstruct* - funstruct of player
   - *enemy-funstruct* - funstruct of enemy
+
+## Examples
+- **"game-request"** :
+``` {:type "game-request"
+     :data {:user-name "Oleh"}}```
