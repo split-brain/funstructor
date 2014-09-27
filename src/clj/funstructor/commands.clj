@@ -4,6 +4,7 @@
 
             [funstructor.game-state :refer :all]
             [funstructor.cards :as cards]
+            [funstructor.cards-functions :as f]
             [funstructor.utils :refer :all]))
 
 (defn encode-command [command]
@@ -35,21 +36,20 @@
                                    :enemy uuid1}]
                        :channels channel2)
 
-        (update-global-state (update-game (current-global-state) game-id (make-game uuid1 uuid2)))
-
+        (update-global-state (update-game (current-global-state) game-id (f/make-game uuid1 uuid2)))
         (apply remove-from-pending pending-pair)))
     (recur)))
 
 (defn make-update-data [game-state player-uuid]
-  (let [player-state (game-state player-uuid)
-        opponent-uuid (get-opponent-uuid game-state player-uuid)]
+  (let [player-state (f/get-player-state player-uuid)
+        opponent-uuid (f/get-opponent-uuid game-state player-uuid)]
     (-> (update-in player-state
                    [:cards]
                    (fn [cards]
                      (map cards/cards cards)))
         (assoc :current-turn (:current-turn game-state))
-        (assoc :enemy-cards-num (count (:cards (game-state opponent-uuid))))
-        (assoc :enemy-funstruct (:funstruct (game-state opponent-uuid))))))
+        (assoc :enemy-cards-num (count (:cards (f/get-player-state opponent-uuid))))
+        (assoc :enemy-funstruct (:funstruct (f/get-player-state opponent-uuid))))))
 
 (defmulti handle-command (fn [command channel] (:type command)))
 (defmethod handle-command "game-request" [command channel]
@@ -69,10 +69,10 @@
         game (get-game game-id)
         player-id (uuid-for-channel channel)
         new-game (-> game
-                     (mark-player-ready player-id))]
+                     (f/mark-player-ready player-id))]
     (update-game (current-global-state) new-game)
-    (when (both-players-ready new-game)
-      (let [[p1 p2 :as players] (get-game-players new-game)
+    (when (f/both-players-ready new-game)
+      (let [[p1 p2 :as players] (f/get-game-players new-game)
             [c1 c2] (map #(channel-for-uuid (current-global-state) %) players)]
         (send-commands :commands [{:type :game-update
                                    :data (make-update-data new-game p1)
@@ -84,7 +84,3 @@
 
 (defmethod handle-command :default [command channel]
   (printerr "Unrecognized command: " command))
-
-
-
-
