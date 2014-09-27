@@ -4,6 +4,7 @@
    [funstructor.cards :as c]))
 
 (def start-cards-num 6)
+(def cards-per-turn 2)
 
 (defn- gap []
   {:terminal :gap
@@ -18,13 +19,17 @@
   {:players
    {p1 (make-player-state p2)
     p2 (make-player-state p1)}
-   :current-turn p1})
+   :current-turn p1
+   :turn-ends 0})
 
 (defn get-opponent-uuid [game uuid]
   (get-in game [:players uuid :opponent]))
 
 (defn get-player-state [game uuid]
   (get-in game [:players uuid]))
+
+(defn get-players [game]
+  (keys (get-in game [:players])))
 
 (defn- apply-to-cards
   "Get access to cards"
@@ -120,9 +125,19 @@
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
 
-(defn end-turn-for-player [game-map player-key])
+(defn end-turn-for-player [game-map player-key]
+  (update-in game-map :turn-ends inc))
 
-(defn end-turn [game-map])
+(defn end-turn [game-map]
+; allow only if two player finished their turn :turn-ends-2
+  (let [[p1 p2] (get-players game-map)]
+    (-> game-map
+        (assoc-in [:turn-ends] 0)
+        (take-cards p1 cards-per-turn)
+        (take-cards p2 cards-per-turn)
+        ;; random card
+        (take-card (rand-nth [p1 p2]) (c/next-card))
+        )))
 
 
 (defn use-card
@@ -139,15 +154,11 @@
       ))
 
 (defn init-game [game-map]
-  (let [players (keys (get-in game-map [:players]))]
+  (let [players (get-players game-map)]
     (reduce (fn [m player]
               (take-cards m player start-cards-num))
             game-map
             players)))
-
-
-(defn turn-card-winner [game-map]
-  (rand-nth (keys (get-in game-map [:players]))))
 
 ;; Examples
 ;; Use :terminal
