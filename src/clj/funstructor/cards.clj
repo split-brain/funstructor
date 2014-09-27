@@ -12,7 +12,8 @@
 
     :mutator-left-gap
     :mutator-right-gap
-    :mutator-position-gap})
+    :mutator-position-gap
+    :mutator-shot})
 
 (def cards
   {
@@ -111,6 +112,40 @@
     :type :mutator
     :weight 100
     :img "mutator_pos_gap.svg"}
+
+   :mutator-shot
+   {:name "Shot"
+    :description
+    "remove terminal from the opponents funstruct"
+    :target :opponent
+    :type :mutator
+    :weight 50
+    :img "mutator_shot.svg"}
+
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; Actions
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   :action-thief-1
+   {:name "Thief v1.0"
+    :description
+    "steal random card from opponent's hand"
+    :target :opponent
+    :type :action
+    :weight 40
+    :img "action_thief_1.svg"}
+
+   
+   :action-discard-1
+   {:name "Discard v1.0"
+    :description
+    "opponent discards random card"
+    :target :opponent
+    :type :action
+    :weight 40
+    :img "action_discard_1.svg"}
+
    
    })
 

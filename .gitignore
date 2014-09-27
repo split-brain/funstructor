@@ -9,6 +9,8 @@ resources/public/js/funstructor/
 resources/public/js/goog/
 resources/public/js/reagent/
 .lein-*
+.repl/
+out/
 
 # Emacs Gitignore
 

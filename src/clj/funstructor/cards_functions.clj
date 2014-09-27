@@ -47,6 +47,9 @@
 (defn get-players [game]
   (keys (get-in game [:players])))
 
+(defn get-cards [game player]
+  (get-in game [:players player :cards]))
+
 (defn- apply-to-cards
   "Get access to cards"
   [game-map player-key]
@@ -56,6 +59,41 @@
   "Get access to funstruct"
   [game-map player-key]
   (partial update-in game-map [:players player-key :funstruct]))
+
+;; Cards Accessor
+
+(defn- take-card
+  "Add card to player state"
+  [game-map player-key card]
+  ((apply-to-cards game-map player-key)
+   (fn [v] (conj v card))))
+
+(defn take-cards [game-map player-key num]
+  (reduce
+   (fn [m e] (take-card m player-key e))
+   game-map
+   (repeatedly num c/next-card)))
+
+(defn- delete-card
+  "Delete card from player state"
+  [game-map player-key card-pos]
+  ((apply-to-cards game-map player-key)
+   (fn [v] (u/delete-from-vector v card-pos))))
+
+(defn- get-card [game-map player-key pos]
+  (get-in game-map [:players player-key :cards pos]))
+
+(defn end-turn [game-map]
+; allow only if two player finished their turn :turn-ends-2
+  (let [[p1 p2] (get-players game-map)]
+    (-> game-map
+        (assoc-in [:turn-ends] 0)
+        (take-cards p1 cards-per-turn)
+        (take-cards p2 cards-per-turn)
+        ;; random card
+        (take-card (rand-nth [p1 p2]) (c/next-card))
+
+        )))
 
 ;; Functions to operate on game state
 
@@ -118,40 +156,48 @@
                     [(gap)]
                     (drop pos funstruct)))))))
 
-;; Cards Accessor
+(defmethod apply-card
+  :mutator-shot
+  [game-map player-key card & args]
+  (let [[pos & _] args]
+    ((apply-to-funstruct game-map
+                         (get-opponent game-map player-key))
+     (fn [funstruct]
+       (assoc funstruct pos (gap))))))
 
-(defn- take-card
-  "Add card to player state"
-  [game-map player-key card]
-  ((apply-to-cards game-map player-key)
-   (fn [v] (conj v card))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; APPLY-CARD ACTION
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn take-cards [game-map player-key num]
-  (reduce
-   (fn [m e] (take-card m player-key e))
-   game-map
-   (repeatedly num c/next-card)))
 
-(defn- delete-card
-  "Delete card from player state"
-  [game-map player-key card-pos]
-  ((apply-to-cards game-map player-key)
-   (fn [v] (u/delete-from-vector v card-pos))))
+(defmethod apply-card
+  :action-thief-1
+  [game-map player-key card & args]
+  (let [opponent (get-opponent game-map player-key)
+        opp-cards (get-cards game-map opponent)
+        opp-cards-num (count opp-cards)]
+    (if (> opp-cards-num 0)
+      (let [pos (rand-int opp-cards-num)]
+        (-> game-map
+            ;; first player get cards
+            (take-card player-key (get-card game-map opponent pos))
+            ;; opponent loses it
+            (delete-card opponent pos)))
+      game-map)))
 
-(defn- get-card [game-map player-key pos]
-  (get-in game-map [:players player-key :cards pos]))
+(defmethod apply-card
+  :action-discard-1
+  [game-map player-key card & args]
+  (let [opponent (get-opponent game-map player-key)
+        opp-cards (get-cards game-map opponent)
+        opp-cards-num (count opp-cards)]
+    (if (> opp-cards-num 0)
+      (let [pos (rand-int opp-cards-num)]
+        (-> game-map
+            ;; opponent loses random card
+            (delete-card opponent pos)))
+      game-map)))
 
-(defn end-turn [game-map]
-; allow only if two player finished their turn :turn-ends-2
-  (let [[p1 p2] (get-players game-map)]
-    (-> game-map
-        (assoc-in [:turn-ends] 0)
-        (take-cards p1 cards-per-turn)
-        (take-cards p2 cards-per-turn)
-        ;; random card
-        (take-card (rand-nth [p1 p2]) (c/next-card))
-
-        )))
 
 
 (defn use-card
@@ -164,7 +210,7 @@
       (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
       ;; delete card from player
       (delete-card player-key card-pos)
-      
+
       ))
 
 (defn end-turn-for-player [game]
