@@ -6,12 +6,12 @@
 (defn- apply-to-cards
   "Get access to cards"
   [game-map player-key]
-  (partial update-in game-map [player-key :cards]))
+  (partial update-in game-map [:players player-key :cards]))
 
 (defn- apply-to-funstruct
   "Get access to funstruct"
   [game-map player-key]
-  (partial update-in game-map [player-key :funstruct]))
+  (partial update-in game-map [:players player-key :funstruct]))
 
 (defn- gap []
   {:terminal :gap})
@@ -74,7 +74,7 @@
     ((apply-to-funstruct game-map player-key)
      (fn [funstruct]
        (vec (concat (take pos funstruct)
-                    [{:type :gap}]
+                    [(gap)]
                     (drop pos funstruct)))))))
 
 ;; Cards Accessor
@@ -85,6 +85,12 @@
   ((apply-to-cards game-map player-key)
    (fn [v] (conj v card))))
 
+(defn take-cards [game-map player-key num]
+  (reduce
+   (fn [m e] (take-card m player-key e))
+   game-map
+   (repeatedly num c/next-card)))
+
 (defn- delete-card
   "Delete card from player state"
   [game-map player-key card-pos]
@@ -92,7 +98,7 @@
    (fn [v] (u/delete-from-vector v card-pos))))
 
 (defn- get-card [game-map player-key pos]
-  (get-in game-map [player-key :cards pos]))
+  (get-in game-map [:players player-key :cards pos]))
 
 
 
@@ -112,6 +118,12 @@
       
       ))
 
+(defn init-game [game-map]
+  (let [players (keys (get-in game-map [:players]))]
+    (reduce (fn [m player]
+              (take-cards m player 6))
+            game-map
+            players)))
 
 ;; Examples
 ;; Use :terminal

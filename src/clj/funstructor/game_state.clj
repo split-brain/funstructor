@@ -38,14 +38,16 @@
   {:terminal :gap
    :value nil})
 
-(defn make-player-state []
-  {:cards []
+(defn make-player-state [opponent]
+  {:opponent opponent
+   :cards []
    :funstruct [(gap)]})
 
 (defn make-game [p1 p2]
-  {p1 (make-player-state)
-   p2 (make-player-state)
+  {:players
+   {p1 (make-player-state p2)
+    p2 (make-player-state p1)}
    :current-turn p1})
 
 (defn get-opponent-uuid [game uuid]
-  (first (disj (set (filter string? (keys game))) uuid)))
+  (get-in game [:players uuid :opponent]))
