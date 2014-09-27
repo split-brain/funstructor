@@ -36,12 +36,11 @@
                                    :enemy uuid1}]
                        :channels channel2)
 
-        (update-global-state (add-game (current-global-state) game-id (f/make-game uuid1 uuid2)))
-
+        (update-global-state (update-game (current-global-state) game-id (f/make-game uuid1 uuid2)))
         (apply remove-from-pending pending-pair)))
     (recur)))
 
-(defn make-update-info [player-uuid game-state]
+(defn make-update-data [game-state player-uuid]
   (let [player-state (f/get-player-state player-uuid)
         opponent-uuid (f/get-opponent-uuid game-state player-uuid)]
     (-> (update-in player-state
@@ -55,22 +54,33 @@
 (defmulti handle-command (fn [command channel] (:type command)))
 (defmethod handle-command "game-request" [command channel]
   (let [uuid (gen-uuid)]
-    (add-channel channel uuid)
-    (add-pending uuid)
     (-> (current-global-state)
         (add-channel channel uuid)
-        (add-pending)
+        (add-pending uuid)
         (update-global-state))
     (println "Global state: " (current-global-state))
     (send-commands :commands [{:type :game-request-ok
                                :data {:uuid uuid
                                       :pending (pending-players (current-global-state))}}]
-                   :channels (map channel-for-uuid (pending-players (current-global-state))))))
+                   :channels (map #(channel-for-uuid (current-global-state) %) (pending-players (current-global-state))))))
 
 (defmethod handle-command "start-game-ok" [command channel]
   (let [game-id (get-in [:data :game-id] command)
-        player-id (uuid-for-channel channel)]
-    ))
+        game (get-game game-id)
+        player-id (uuid-for-channel channel)
+        new-game (-> game
+                     (f/mark-player-ready player-id))]
+    (update-game (current-global-state) new-game)
+    (when (f/both-players-ready new-game)
+      (let [[p1 p2 :as players] (f/get-game-players new-game)
+            [c1 c2] (map #(channel-for-uuid (current-global-state) %) players)]
+        (send-commands :commands [{:type :game-update
+                                   :data (make-update-data new-game p1)
+                                   }]
+                       :channels [c1])
+        (send-commands :commands [{:type :game-update
+                                   :data (make-update-data new-game p2)}]
+                       :channels [c2])))))
 
 (defmethod handle-command :default [command channel]
   (printerr "Unrecognized command: " command))

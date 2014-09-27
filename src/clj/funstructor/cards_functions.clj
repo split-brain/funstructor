@@ -22,6 +22,18 @@
    :current-turn p1
    :turn-ends 0})
 
+(defn get-game-players [game]
+  (keys (:players game)))
+
+(defn mark-player-ready [game player]
+  (assoc-in [:players player :ready] true))
+
+(defn both-players-ready [game]
+  (let [[p1 p2] (get-game-players game)]
+    (and
+     (get-in game [:players p1 :ready])
+     (get-in game [:players p2 :ready]))))
+
 (defn get-opponent-uuid [game uuid]
   (get-in game [:players uuid :opponent]))
 

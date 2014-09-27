@@ -27,6 +27,16 @@
 (defn channel-for-uuid [global-state uuid]
   (get-in global-state [:uuid-channel-map uuid]))
 
+(defn uuid-for-channel [global-state channel]
+  (get-in global-state [:channel-uuid-map channel]))
+
+(defn get-game [global-state game-id]
+  (get-in global-state [:games game-id]))
+
+(defn update-game [global-state game-uuid game-map]
+  (-> global-state
+      (assoc-in [:games] {game-uuid game-map})))
+
 (defn get-pending-pair [global-state]
   (let [pending (pending-players global-state)]
     (when (>= 2 (count pending))
