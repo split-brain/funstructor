@@ -149,6 +149,7 @@
         (take-cards p2 cards-per-turn)
         ;; random card
         (take-card (rand-nth [p1 p2]) (c/next-card))
+
         )))
 
 
