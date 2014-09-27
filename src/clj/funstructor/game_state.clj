@@ -1,14 +1,13 @@
-(ns funstructor.global-state
+(ns funstructor.game-state
   (:require
-   funstructor.commands
    [clojure.set :as set]))
 
 (def global-state (atom {:pending #{}
                          :uuid-channel-map {}
                          :games {}}))
 
-(defn init-global-state []
-  (funstructor.commands/pending-checker))
+;; (defn init-game-state []
+;;   (funstructor.commands/pending-checker))
 
 (defn add-channel [channel uuid]
   (swap! global-state update-in [:uuid-channel-map] assoc channel uuid))
@@ -36,7 +35,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn gap []
-  {:type :gap})
+  {:terminal :gap
+   :value nil})
 
 (defn make-player-state []
   {:cards []
