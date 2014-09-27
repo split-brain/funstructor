@@ -9,17 +9,17 @@
             [compojure.core :refer [defroutes GET]]
 
             [funstructor.commands :as commands]
-            [funstructor.utils :refer [printerr]])
+            [funstructor.utils :as u])
   (:gen-class))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (println "Opened connection from" (:remote-addr req))
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
-      (println "Received message" msg)
+      (u/log "Received message" msg)
       ;; (println "Type: " (class message))
       (if error
-        (printerr "Received error: " msg)
+        (u/printerr "Received error: " msg)
         (commands/handle-command (commands/decode-command message) ws-channel))
       (recur))))
 
@@ -40,6 +40,7 @@
 (defn -main [& args]
   (let [port (Integer/parseInt
               (or (System/getenv "PORT") "8080"))]
-    (println "Server started on port " port)
+    (u/start-logging)
+    (u/log "Server started on port " port)
     (commands/pending-checker)
     (run-server application {:port port :join? false})))
