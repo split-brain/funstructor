@@ -48,7 +48,7 @@
                    (fn [cards]
                      (map cards/cards cards)))
         (assoc :current-turn (:current-turn game-state))
-        (assoc :enemy-cards-num (count(:cards (game-state opponent-uuid))))
+        (assoc :enemy-cards-num (count (:cards (game-state opponent-uuid))))
         (assoc :enemy-funstruct (:funstruct (game-state opponent-uuid))))))
 
 (defmulti handle-command (fn [command channel] (:type command)))
@@ -57,7 +57,7 @@
     (add-channel channel uuid)
     (add-pending uuid)
     (println "Global state: " @global-state)
-    (send-commands :commands [{:type :request-ok
+    (send-commands :commands [{:type :game-request-ok
                                :uuid uuid
                                :pending (pending-players)}]
                    :channels (map channel-for-uuid (pending-players)))))
