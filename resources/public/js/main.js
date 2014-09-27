@@ -61,6 +61,12 @@ var funs = funs || {};
     var ROUTES = {
         'game-request-ok' :  function(data){
             console.log('game-request-ok', data);
+        },
+        'start-game' : function(data){
+            console.log('start-game', data);
+            ws.send({
+                type: 'start-game-ok'
+            });
         }
     };
 
