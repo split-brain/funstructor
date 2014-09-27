@@ -35,8 +35,11 @@
      (get-in game [:players p1 :ready])
      (get-in game [:players p2 :ready]))))
 
-(defn get-opponent-uuid [game uuid]
-  (get-in game [:players uuid :opponent]))
+(defn get-opponent [game player]
+  (get-in game [:players player :opponent]))
+
+(defn turn-finished? [game]
+  (= 2 (:turn-ends game)))
 
 (defn get-player-state [game uuid]
   (get-in game [:players uuid]))
@@ -138,9 +141,6 @@
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
 
-(defn end-turn-for-player [game-map player-key]
-  (update-in game-map :turn-ends inc))
-
 (defn end-turn [game-map]
 ; allow only if two player finished their turn :turn-ends-2
   (let [[p1 p2] (get-players game-map)]
@@ -166,6 +166,11 @@
       (delete-card player-key card-pos)
       
       ))
+
+(defn end-turn-for-player [game]
+  (-> game
+      (assoc :current-turn (get-opponent game (:current-turn game)))
+      (update-in [:turn-ends] inc)))
 
 (defn init-game [game-map]
   (let [players (get-players game-map)]

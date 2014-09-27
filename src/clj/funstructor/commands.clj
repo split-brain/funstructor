@@ -42,7 +42,7 @@
 
 (defn make-update-data [game-state player-uuid]
   (let [player-state (f/get-player-state game-state player-uuid)
-        opponent-uuid (f/get-opponent-uuid game-state player-uuid)]
+        opponent-uuid (f/get-opponent game-state player-uuid)]
     (-> (update-in player-state
                    [:cards]
                    (fn [cards]
@@ -50,6 +50,19 @@
         (assoc :current-turn (:current-turn game-state))
         (assoc :enemy-cards-num (count (:cards (f/get-player-state game-state opponent-uuid))))
         (assoc :enemy-funstruct (:funstruct (f/get-player-state game-state opponent-uuid))))))
+
+(defn send-game-updates [game-id]
+  (let [initialized-game (get-game (current-global-state) game-id)
+        [p1 p2 :as players] (f/get-game-players initialized-game)
+        [c1 c2] (map #(channel-for-uuid (current-global-state) %) players)]
+    (u/log "Sending game-update's for game " game-id)
+    (send-commands :commands [{:type :game-update
+                               :data (make-update-data initialized-game p1)
+                               }]
+                   :channels [c1])
+    (send-commands :commands [{:type :game-update
+                               :data (make-update-data initialized-game p2)}]
+                   :channels [c2])))
 
 (defmulti handle-command (fn [command channel] (:type command)))
 (defmethod handle-command "game-request" [command channel]
@@ -67,29 +80,25 @@
   (let [game-id (u/uuid-from-string (get-in command [:data :game-id]))
         game (get-game (current-global-state) game-id)
         player-id (uuid-for-channel (current-global-state) channel)
-        ;; new-game (-> game
-        ;;              (f/mark-player-ready player-id))
         ]
     (u/log "Processing start-game-ok for game: " game-id
            "\n\n")
     (update-global-state update-game game-id f/mark-player-ready player-id)
-    ;; (u/log ">>>> updated game: " (get-game (current-global-state) game-id)
-    ;;        "\n\n")
     (when (f/both-players-ready (get-game (current-global-state) game-id))
       (update-global-state update-game game-id f/init-game)
-      (let [initialized-game (get-game (current-global-state) game-id)
-            [p1 p2 :as players] (f/get-game-players initialized-game)
-            [c1 c2] (map #(channel-for-uuid (current-global-state) %) players)]
-        (u/log "Players: " players "  ready. sending game-update's")
-        (update-game (current-global-state) game-id initialized-game)
-        ;; (u/log "Update data: " (make-update-data initialized-game p1))
-        (send-commands :commands [{:type :game-update
-                                   :data (make-update-data initialized-game p1)
-                                   }]
-                       :channels [c1])
-        (send-commands :commands [{:type :game-update
-                                   :data (make-update-data initialized-game p2)}]
-                       :channels [c2])))))
+      (send-game-updates game-id))))
+
+(defmethod handle-command "end-turn" [command channel]
+  (let [game-id (u/uuid-from-string (get-in command [:data :game-id]))
+        player-id (uuid-for-channel (current-global-state) channel)]
+
+    (u/log "Processing end-turn for game: " game-id)
+
+    (update-global-state update-game game-id f/end-turn-for-player)
+    (let [updated-game (get-game (current-global-state) game-id)]
+      (when (f/turn-finished? updated-game)
+        (update-global-state update-game game-id f/end-turn)
+        (send-game-updates game-id)))))
 
 (defmethod handle-command :default [command channel]
   (u/printerr "Unrecognized command: " command))
