@@ -35,8 +35,8 @@
                                    :enemy uuid1}]
                        :channels channel2)
 
-        
-        
+        (update-global-state (add-game (current-global-state) game-id (make-game uuid1 uuid2)))
+
         (apply remove-from-pending pending-pair)))
     (recur)))
 
@@ -67,8 +67,9 @@
                    :channels (map channel-for-uuid (pending-players (current-global-state))))))
 
 (defmethod handle-command "start-game-ok" [command channel]
-  (let []
-   ))
+  (let [game-id (get-in [:data :game-id] command)
+        player-id (uuid-for-channel channel)]
+    ))
 
 (defmethod handle-command :default [command channel]
   (printerr "Unrecognized command: " command))
