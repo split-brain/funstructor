@@ -37,10 +37,23 @@
 (defn legend []
   [:div.legend])
 
-(defn start-new-game! []
-  (let [ws (init-ws-connection!)]
-    (go
-      (>! ws "test!"))))
+(defn process-msg [msg ch]
+  (js/alert (str "Message recieved: " (prn-str msg))))
+
+(def url "ws://localhost:8080/ws")
+
+(defn start-new-game! [player-name]
+  (render-loader)
+  (go
+    (let [{:keys [ws-channel error]} (<! (ws-ch url {:format :json-kw}))]
+      (if error
+        (js/alert "Failed to open WebSocket connection")
+        (do
+          (>! ws-channel {:type "game-request" :data {:user-name player-name}})
+          (go-loop [msg (<! ws-channel)]
+            (process-msg msg ws-channel)
+            (recur (<! ws-channel))
+            ))))))
 
 (defn login-form []
   [:section#start
