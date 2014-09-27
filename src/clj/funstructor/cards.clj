@@ -5,6 +5,10 @@
 (def cards
   {
 
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; Terminals
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
    :terminal-left-paren
    {:name "LEFT PAREN"
     :description

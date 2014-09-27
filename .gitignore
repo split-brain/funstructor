@@ -1,2 +1,15 @@
 target/
 .nrepl-port
+
+
+
+# Emacs Gitignore
+
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*

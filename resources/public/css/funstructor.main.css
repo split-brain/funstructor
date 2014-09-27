@@ -1,0 +1,25 @@
+html, body{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    font-family: 'Ubuntu Mono', sans-serif;
+    
+    background: url(../img/back.png) repeat center;
+}
+
+body > header{
+    box-sizing: border-box;
+    background-color: #3179DE;
+    position: absolute;
+    width: 100%;
+    height: 46px;
+    text-align: center;
+}
+body > header > h1{
+    line-height: 44px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
