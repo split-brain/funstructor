@@ -122,15 +122,24 @@ var funs = funs || {};
     // draw cards on a field
     var flyingCards = document.getElementById('flyingCards');
     var CARDS = [
-        "mutator_left_gap.svg"
-        ,"mutator_pos_gap.svg"
-        ,"mutator_right_gap.svg"
-        ,"terminal_id.svg"
-        ,"terminal_left_paren.svg"
-        ,"terminal_left_square.svg"
-        ,"terminal_num.svg"
-        ,"terminal_right_paren.svg"
+        "action_discard_1.svg"     
+        ,"action_equality_1.svg"    
+        ,"action_equality_2.svg"    
+        ,"action_equality_3.svg"    
+        ,"action_thief_1.svg"       
+        ,"duration_luck_1.svg"      
+        ,"duration_luck_2.svg"      
+        ,"mutator_left_gap.svg"     
+        ,"mutator_pos_gap.svg"      
+        ,"mutator_right_gap.svg"    
+        ,"mutator_shot.svg"         
+        ,"terminal_id.svg"          
+        ,"terminal_left_paren.svg"  
+        ,"terminal_left_square.svg" 
+        ,"terminal_num.svg"         
+        ,"terminal_right_paren.svg" 
         ,"terminal_right_square.svg"
+        ,"action_discard_1.svg"     
     ];
     var requested = false;
     

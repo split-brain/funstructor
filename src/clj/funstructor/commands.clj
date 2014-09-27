@@ -28,7 +28,7 @@
       (let [[uuid1 uuid2] pending-pair
             [channel1 channel2] (map #(channel-for-uuid (current-global-state) %) pending-pair)
             game-id (u/gen-uuid)]
-        (println "Taking two players for game with uuids: " pending-pair "\n\n")
+        (u/log "Taking two players for game " game-id " with uuids: " pending-pair "\n\n")
         (send-commands :commands [{:type :start-game
                                    :data {:game-id game-id
                                           :enemy uuid2}}]
@@ -65,6 +65,10 @@
     (send-commands :commands [{:type :game-update
                                :data (make-update-data initialized-game p2)}]
                    :channels [c2])))
+
+
+;; Functions for command handling
+
 
 (defmulti handle-command (fn [command channel] (:type command)))
 
