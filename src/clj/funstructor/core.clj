@@ -9,7 +9,8 @@
             [compojure.core :refer [defroutes GET]]
 
             [funstructor.commands :refer [decode-command handle-command]]
-            [funstructor.utils :refer [printerr]]))
+            [funstructor.utils :refer [printerr]])
+  (:gen-class))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (println "Opened connection from" (:remote-addr req))
@@ -38,4 +39,3 @@
                (or (System/getenv "PORT") "8080"))]
     (println "Server started on port " port)
     (run-server application {:port port :join? false})))
-

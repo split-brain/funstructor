@@ -15,11 +15,89 @@ body > header{
     width: 100%;
     height: 46px;
     text-align: center;
+    border-bottom: 3px solid black;
 }
 body > header > h1{
-    line-height: 44px;
+    line-height: 42px;
     font-weight: bold;
     color: white;
     margin: 0;
     padding: 0;
+}
+
+body > footer{
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    height: 260px;
+    background-image: url(../img/cards/back.svg);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: auto 100%;
+}
+
+.cb{
+    clear: both;
+}
+
+#start{
+    position: absolute;
+    width: 100%;
+    box-sizing: border-box;
+    top: 50%;
+    left: 0;
+    text-align: center;
+    margin: -110px 0 0 0;
+}
+
+.button.start input{
+    padding: 10px 30px;
+    font-size: 36px;
+    line-height: 40px;
+}
+.input.start *{
+    font-size: 24px;
+}
+.input.start label{
+    font-size: 32px;
+    padding: 10px 0px;
+}
+.input.start input{
+    padding: 10px;
+    text-align: center;
+}
+
+
+.button{
+    display: inline-block;
+    padding: 3px;
+    background-color: rgba(0,0,0, 0.2);
+}
+.button button,
+.button input{
+    cursor: pointer;
+    padding: 10px 20px;
+    display: inline-block;
+    line-height: 16px;
+    font-size: 16px;
+    color: white;
+    border: 3px solid black;
+    background-color: rgba(49,121,222,1);    
+}
+
+.input{
+    padding: 3px;
+    background-color: rgba(0,0,0, 0.2);
+    display: inline-block;
+}
+.input label{
+    color: white;
+    display: block;
+    
+}
+.input input,
+.input textarea{
+    font-size: 16px;
+    line-height: 16px;
+    border: 3px solid black;
 }
