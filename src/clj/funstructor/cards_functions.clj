@@ -80,6 +80,12 @@
   ((apply-to-cards game-map player-key)
    (fn [v] (u/delete-from-vector v card-pos))))
 
+(defn- delete-all-cards
+  "Delete all cards from player state"
+  [game-map player-key]
+  ((apply-to-cards game-map player-key)
+   (fn [v] (vec []))))
+
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
 
@@ -198,6 +204,34 @@
             (delete-card opponent pos)))
       game-map)))
 
+(defmethod apply-card
+  :action-equality-1
+  [game-map player-key card & args]
+  (let [opp (get-opponent game-map player-key)]
+    (-> game-map
+        (delete-all-cards player-key)
+        (delete-all-cards opp)
+        (take-cards player-key 5)
+        (take-cards opp 5))))
+
+(defmethod apply-card
+  :action-equality-2
+  [game-map player-key card & args]
+  (let [opp (get-opponent game-map player-key)
+        opp-cards (get-cards game-map opp)
+        your-cards-num (count (get-cards game-map player-key))
+        opp-cards-num (count opp-cards)]
+    (if (< your-cards-num opp-cards-num)
+      (take-cards game-map player-key (- opp-cards-num your-cards-num))
+      game-map)))
+
+(defmethod apply-card
+  :action-equality-3
+  [game-map player-key card & args]
+  (let [opp (get-opponent game-map player-key)]
+    (-> game-map
+        (delete-all-cards player-key)
+        (delete-all-cards opp))))
 
 
 (defn use-card

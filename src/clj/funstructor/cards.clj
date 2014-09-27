@@ -135,7 +135,6 @@
     :type :action
     :weight 40
     :img "action_thief_1.svg"}
-
    
    :action-discard-1
    {:name "Discard v1.0"
@@ -146,6 +145,33 @@
     :weight 40
     :img "action_discard_1.svg"}
 
+   :action-equality-1
+   {:name "Equality v1"
+    :description
+    "you and your opponent discard all cards from hand
+and take 5 from deck"
+    :target :opponent
+    :type :action
+    :weight 20
+    :img "action_equality_1.svg"}
+
+   :action-equality-2
+   {:name "Equality v2"
+    :description
+    "you take cards from deck until you have as many as your opponent"
+    :target :opponent
+    :type :action
+    :weight 20
+    :img "action_equality_2.svg"}
+
+   :action-equality-3
+   {:name "Equality v3"
+    :description
+    "you and your opponent discard all cards"
+    :target :opponent
+    :type :action
+    :weight 10
+    :img "action_equality_3.svg"}
    
    })
 
