@@ -21,23 +21,24 @@
 
 (defn pending-checker []
   (go-loop []
-    (<! (timeout 1000))
-    (when-let [pending-pair (get-pending-pair)]
+    (<! (timeout 3000))
+    (when-let [pending-pair (get-pending-pair (current-global-state))]
       (let [[uuid1 uuid2] pending-pair
-            [channel1 channel2] (map channel-for-uuid pending-pair)
+            [channel1 channel2] (map #(channel-for-uuid (current-global-state) %) pending-pair)
             game-id (gen-uuid)]
-
+        (println "Taking two players for game with uuids: " pending-pair "\n\n")
         (send-commands :commands [{:type :start-game
-                                   :game-id game-id
-                                   :enemy uuid2}]
-                       :channels channel1)
+                                   :data {:game-id game-id
+                                          :enemy uuid2}}]
+                       :channels [channel1])
         (send-commands :commands [{:type :start-game
-                                   :game-id game-id
-                                   :enemy uuid1}]
-                       :channels channel2)
+                                   :data {:game-id game-id
+                                          :enemy uuid1}}]
+                       :channels [channel2])
 
         (update-global-state (update-game (current-global-state) game-id (f/make-game uuid1 uuid2)))
-        (apply remove-from-pending pending-pair)))
+        (let [new-state (apply remove-from-pending (current-global-state) pending-pair)]
+          (update-global-state new-state))))
     (recur)))
 
 (defn make-update-data [game-state player-uuid]
@@ -58,11 +59,12 @@
         (add-channel channel uuid)
         (add-pending uuid)
         (update-global-state))
-    (println "Global state: " (current-global-state))
+    (println "Processing game-request and generating uuid: " uuid)
     (send-commands :commands [{:type :game-request-ok
                                :data {:uuid uuid
-                                      :pending (pending-players (current-global-state))}}]
-                   :channels (map #(channel-for-uuid (current-global-state) %) (pending-players (current-global-state))))))
+                                      :pending (get-pending-players (current-global-state))}}]
+                   :channels [channel]
+                   )))
 
 (defmethod handle-command "start-game-ok" [command channel]
   (let [game-id (get-in [:data :game-id] command)

@@ -21,7 +21,7 @@
 (defn add-pending [global-state uuid]
   (update-in global-state [:pending] conj uuid))
 
-(defn pending-players [global-state]
+(defn get-pending-players [global-state]
   (:pending global-state))
 
 (defn channel-for-uuid [global-state uuid]
@@ -38,9 +38,9 @@
       (assoc-in [:games] {game-uuid game-map})))
 
 (defn get-pending-pair [global-state]
-  (let [pending (pending-players global-state)]
-    (when (>= 2 (count pending))
-      [(first pending-players) (second pending-players)])))
+  (let [pending (get-pending-players global-state)]
+    (when (>= (count pending) 2)
+      [(first pending) (second pending)])))
 
 (defn remove-from-pending [global-state & uuids]
   (update-in global-state [:pending] set/difference uuids))

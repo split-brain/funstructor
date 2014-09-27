@@ -8,7 +8,7 @@
             [clojure.core.async :refer [<! >! put! close! go-loop]]
             [compojure.core :refer [defroutes GET]]
 
-            [funstructor.commands :refer [decode-command handle-command]]
+            [funstructor.commands :as commands]
             [funstructor.utils :refer [printerr]])
   (:gen-class))
 
@@ -17,10 +17,10 @@
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
       (println "Received message" msg)
-      (println "Type: " (class message))
+      ;; (println "Type: " (class message))
       (if error
         (printerr "Received error: " msg)
-        (handle-command (decode-command message) ws-channel))
+        (commands/handle-command (commands/decode-command message) ws-channel))
       (recur))))
 
 (defroutes app-routes
@@ -41,4 +41,5 @@
   (let [port (Integer/parseInt
               (or (System/getenv "PORT") "8080"))]
     (println "Server started on port " port)
+    (commands/pending-checker)
     (run-server application {:port port :join? false})))
