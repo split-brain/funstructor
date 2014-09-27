@@ -3,6 +3,8 @@
    [funstructor.utils :as u]
    [funstructor.cards :as c]))
 
+(def start-cards-num 6)
+
 (defn- gap []
   {:terminal :gap
    :value nil})
@@ -139,9 +141,13 @@
 (defn init-game [game-map]
   (let [players (keys (get-in game-map [:players]))]
     (reduce (fn [m player]
-              (take-cards m player 6))
+              (take-cards m player start-cards-num))
             game-map
             players)))
+
+
+(defn turn-card-winner [game-map]
+  (rand-nth (keys (get-in game-map [:players]))))
 
 ;; Examples
 ;; Use :terminal
