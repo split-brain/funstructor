@@ -11,7 +11,7 @@
                 [ring "1.3.1"]
                 [hiccup "1.0.5"]
                 [cheshire "5.3.1"]
-
+                [reagent "0.4.2"]
                 [javax.servlet/servlet-api "2.5"]
 
                 [com.cemerick/piggieback "0.1.3"]]
@@ -20,11 +20,14 @@
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
   :source-paths ["src/clj" "src/cljs"]
+
   :cljsbuild {
               :builds [{:id "funstructor"
                         :source-paths ["src/cljs"]
                         :compiler {
-                                   :output-to "resources/public/js/generated.js"
+                                   :preamble ["reagent/react.js"]
+                                   :output-to "resources/public/js/app.js"
+                                   :output-dir "resources/public/js"
                                    :optimizations :whitespace
                                    :preety-print true
                                    }}]}
