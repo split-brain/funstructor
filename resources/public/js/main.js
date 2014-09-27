@@ -72,6 +72,7 @@ var funs = funs || {};
         },
         'start-game' : function(data){
             console.log('start-game', data);
+            funs.state['game-id'] = data['game-id'];
             ws.send({
                 type: 'start-game-ok',
                 data: {
@@ -112,8 +113,14 @@ var funs = funs || {};
         if(requested){
             return;
         }
+        var name = $form.find('input[type=text]').eq(0).val();
 //        requested = true;
-        funs.websocket.send({type:"game-request"});
+        funs.websocket.send({
+            type: "game-request",
+            data: {
+                'user-name' : name
+            }
+        });
     });
     
     function drawCards(){
