@@ -6,13 +6,18 @@
             [ring.middleware.reload :as reload]
             [chord.http-kit :refer [wrap-websocket-handler]]
             [clojure.core.async :refer [<! >! put! close! go-loop]]
-            [compojure.core :refer [defroutes GET]]))
+            [compojure.core :refer [defroutes GET]]
+
+            [funstructor.commands :refer [decode-command handle-command]]
+            [funstructor.utils :refer [printerr]]))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (println "Opened connection from" (:remote-addr req))
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
-
+      (if error
+        (printerr "Received error: " msg)
+        (handle-command (decode-command message) ws-channel))
       (recur))))
 
 (defroutes app-routes

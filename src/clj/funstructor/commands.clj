@@ -1,24 +1,30 @@
 (ns funstructor.commands
   (:require [cheshire.core :refer [generate-string parse-string]]
-            [funstructor.game-state :refer [add-channel]]
+            [funstructor.game-state :refer :all]
             [clojure.core.async :refer [>! go]]
             [funstructor.utils :refer :all]))
 
-(defn send-command [command channel]
-  (let [json (generate-string command)]
-    (go
-      (>! channel json))))
+(defn encode-command [command]
+  (generate-string command))
 
-(defn parse-command [json]
-  (parse-string json keyword))
+(defn decode-command [in-str]
+  (parse-string in-str keyword))
+
+(defn send-command [command & channels]
+  (let [json (encode-command command)]
+    (doseq [channel channels]
+      (go
+        (>! channel json)))))
 
 (defmulti handle-command (fn [command channel] (:type command)))
 (defmethod handle-command :game-request [command channel]
   (let [uuid (gen-uuid)]
     (add-channel channel uuid)
+    (add-pending uuid)
     (send-command {:type :request-ok
-                   :data uuid}
-                  channel)))
+                   :uuid uuid
+                   :pending (pending-players)}
+                  (map channel-for-uuid (pending-players)))))
 
 (defmethod handle-command :default [command channel]
   (printerr "Unrecognized command: " command))
