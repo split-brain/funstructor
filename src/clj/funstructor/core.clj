@@ -16,6 +16,8 @@
   (println "Opened connection from" (:remote-addr req))
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
+      (println "Received message" msg)
+      (println "Type: " (class message))
       (if error
         (printerr "Received error: " msg)
         (handle-command (decode-command message) ws-channel))
@@ -24,7 +26,7 @@
 (defroutes app-routes
   (GET "/" [] (redirect "index.html"))
   (GET "/ws" [] (-> ws-handler
-                    (wrap-websocket-handler {:format :json-kw})))
+                    (wrap-websocket-handler {:format :str})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
@@ -36,6 +38,6 @@
 
 (defn -main [& args]
   (let [port (Integer/parseInt
-               (or (System/getenv "PORT") "8080"))]
+              (or (System/getenv "PORT") "8080"))]
     (println "Server started on port " port)
     (run-server application {:port port :join? false})))
