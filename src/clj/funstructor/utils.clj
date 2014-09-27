@@ -6,3 +6,7 @@
 
 (defn gen-uuid []
   (java.util.UUID/randomUUID))
+
+(defn delete-from-vector [vector pos]
+  (vec (concat (take pos vector)
+               (drop (inc pos) vector))))
