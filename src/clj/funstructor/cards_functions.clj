@@ -21,7 +21,8 @@
    {p1 (make-player-state p2)
     p2 (make-player-state p1)}
    :current-turn p1
-   :turn-ends 0})
+   :turn-ends 0
+   :turn 1})
 
 (defn get-game-players [game]
   (keys (:players game)))
@@ -98,7 +99,8 @@
         (take-cards p2 cards-per-turn)
         ;; random card
         (take-card (rand-nth [p1 p2]) (c/next-card))
-
+        ;; increment turn num
+        (update-in [:turn] inc)
         )))
 
 ;; Functions to operate on game state
