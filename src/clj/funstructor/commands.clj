@@ -122,8 +122,9 @@
         player-id (gs/player-for-channel (gs/current-global-state) channel)
         card-idx (get-in command [:data :card-idx])
         target (get-in command [:data :target])
+        value (get-in command [:data :value])
         funstr-idx (get-in command [:data :funstruct-idx])]
-    (gs/update-global-state gs/update-game game-id f/use-card player-id card-idx funstr-idx)
+    (gs/update-global-state gs/update-game game-id f/use-card player-id card-idx funstr-idx value)
     (send-game-updates game-id)))
 
 (defmethod handle-command "end-turn" [command channel]
