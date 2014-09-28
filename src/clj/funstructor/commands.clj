@@ -48,7 +48,7 @@
         (gs/update-global-state #(apply gs/remove-from-pending % pending-pair))))
     (recur)))
 
-(defn make-update-data [game-state player-uuid]
+(defn make-player-update-data [game-state player-uuid]
   (let [player-state (f/get-player-state game-state player-uuid)
         opponent-uuid (f/get-opponent game-state player-uuid)]
     (-> (update-in player-state
@@ -59,17 +59,24 @@
         (assoc :enemy-cards-num (count (:cards (f/get-player-state game-state opponent-uuid))))
         (assoc :enemy-funstruct (:funstruct (f/get-player-state game-state opponent-uuid))))))
 
+(defn make-game-update-data [game]
+  (select-keys game [:messages]))
+
+(defn make-update-data [game player]
+  (merge (make-game-update-data game)
+         (make-player-update-data game player)))
+
 (defn send-game-updates [game-id]
-  (let [initialized-game (gs/get-game (gs/current-global-state) game-id)
-        [p1 p2 :as players] (f/get-game-players initialized-game)
+  (let [game (gs/get-game (gs/current-global-state) game-id)
+        [p1 p2 :as players] (f/get-game-players game)
         [c1 c2] (map #(gs/channel-for-player (gs/current-global-state) %) players)]
     (u/log "Sending game-update's for game " game-id)
     (send-command {:type :game-update
-                    :data (make-update-data initialized-game p1)
+                   :data (make-update-data game p1)
                     }
                    c1)
     (send-command {:type :game-update
-                    :data (make-update-data initialized-game p2)}
+                    :data (make-update-data game p2)}
                    c2)))
 
 
