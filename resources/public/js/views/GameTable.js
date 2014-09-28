@@ -83,6 +83,13 @@ funs.Views.YourField = React.createClass({
         var funList = [],
             l = functors.length;
         
+        funList.push(funs.Views.Func({
+            terminal : 'space',
+            value : null,
+            i : 0,
+            self : true
+        }));
+        
         functors.forEach(function(f,i){
             f.i = i;
             f.self = true;
@@ -90,7 +97,7 @@ funs.Views.YourField = React.createClass({
             funList.push(funs.Views.Func({
                 terminal : 'space',
                 value : null,
-                i : i,
+                i : i+1,
                 self : true
             }));
         });
