@@ -1,7 +1,7 @@
 (ns funstructor.view
   (:require [reagent.core :as reagent :refer [atom]]))
 
-(defn get-element [id]
+(defn ^:export get-element [id]
   (.getElementById js/document id))
 
 (defn render [component]
