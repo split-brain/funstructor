@@ -14,6 +14,13 @@
     :mutator-right-gap
     :mutator-position-gap
     ;:mutator-shot
+
+    :action-thief-1
+    :action-discard-1
+    :action-equality-1
+    :action-equality-2
+    :action-equality-3
+    
     })
 
 (def cards
@@ -132,7 +139,7 @@
    {:name "Thief v1.0"
     :description
     "steal random card from opponent's hand"
-    :target :opponent
+    :target :self
     :type :action
     :weight 40
     :img "action_thief_1.svg"}
@@ -141,7 +148,7 @@
    {:name "Discard v1.0"
     :description
     "opponent discards random card"
-    :target :opponent
+    :target :self
     :type :action
     :weight 40
     :img "action_discard_1.svg"}
@@ -151,7 +158,7 @@
     :description
     "you and your opponent discard all cards from hand
 and take 5 from deck"
-    :target :opponent
+    :target :self
     :type :action
     :weight 20
     :img "action_equality_1.svg"}
@@ -160,7 +167,7 @@ and take 5 from deck"
    {:name "Equality v2"
     :description
     "you take cards from deck until you have as many as your opponent"
-    :target :opponent
+    :target :self
     :type :action
     :weight 20
     :img "action_equality_2.svg"}
@@ -169,7 +176,7 @@ and take 5 from deck"
    {:name "Equality v3"
     :description
     "you and your opponent discard all cards"
-    :target :opponent
+    :target :self
     :type :action
     :weight 10
     :img "action_equality_3.svg"}
