@@ -259,7 +259,6 @@ var funs = funs || {};
 // DRAG_N_DROP
 (function(funs){
     funs.ondragstart = function(data){
-        console.log('ondragstart', data);
         var type = data.data.type;
         var name = data.data.name;
         if(name === 'Gap'){
@@ -270,13 +269,14 @@ var funs = funs || {};
         if(type === 'terminal'){
             $('.field.your .terminal').not('.space').addClass('active');
         }
+        if(type === 'duration'){
+            $('.field.your').addClass('active');
+        }
     };
     funs.ondragend = function(e){
-        console.log('onend');
         $('.active').removeClass('active');
     };
     funs.ondragover = function(e){
-        console.log('ondragover', e);
     };
     funs.ondrop = function(data){
         if(funs.sending){
@@ -286,7 +286,6 @@ var funs = funs || {};
         setTimeout(function(){
             funs.sending = false;
         }, 200);
-        console.log('ondrop', data);
         funs.validateAction(data);
     };
 })(funs);
