@@ -491,6 +491,11 @@ body > footer{
     font-size: 26px;
 }
 
+.logStream .message.empty{
+    height: 60px;
+    padding: 0px;
+    border-bottom: none;
+}
 .logStream .message{
     padding: 5px;
     border-bottom: 1px solid #ccc;
@@ -531,7 +536,6 @@ body > footer{
     right: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-bottom: 60px;
 }
 
 .sendMessage.input{

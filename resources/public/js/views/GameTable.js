@@ -224,6 +224,9 @@ funs.Views.LogStream = React.createClass({
             ]);
             return message;
         });
+        children.push(R.div({
+            className: 'message empty'
+        }));
         return R.div({
             className: 'logStream'
         },children);
@@ -250,7 +253,7 @@ funs.Views.SendMessage = React.createClass({
         return R.div({
             className: 'sendMessage input'
         }, R.input({
-            onKeyPress: this.keypress,
+            onKeyDown: this.keypress,
             type: 'text'
         }));
     }
