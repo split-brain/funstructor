@@ -366,6 +366,11 @@ body > footer{
     -webkit-box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
     box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
 }
+.terminal.space.active{
+    background-color: transparent;
+    -webkit-box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
+    box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
+}
 
 .terminal{
     height: 28px;

@@ -45,7 +45,7 @@ funs.Views.OpponentTurn = React.createClass({
         var R = React.DOM;
         return R.div({
             className: 'opponentTurn'
-        },R.div(null,'Opponent\'s Turn'));
+        },R.div(null, funs.state.enemy + '\'s Turn'));
     }
 });
 
@@ -60,7 +60,7 @@ funs.Views.YourField = React.createClass({
         }
         var data;
         try {
-            data = JSON.parse(event.dataTransfer.getData('text'));
+            data = JSON.parse(event.dataTransfer.getData('text/plain'));
         } catch (e) {
             console.warn(e);
             return;
