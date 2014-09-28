@@ -29,6 +29,11 @@ Description is written using following pattern:
 - **"game-request-ok"** - is sent as response to client's **"game-request"**
   - *uuid* - uuid that is assigned to player
   - *pending* - list of all pending players
+- **"start-game"** - is sent when two pending players are found
+  - *game-id* - uuid of created game
+  - *enemy* - name of enemy (not uuid)
+  - *goal-name* - name of function that need to be constructed
+  - *goal-string* - source of function that needs to be constructed
 - **"game-update"** - is sent when client-side state needs to be updated
   - *cards* - array of structures that allow client to render current player's cards
   - *current-turn* - uuid of player that who is allowed to make turn

@@ -34,18 +34,27 @@
       (let [[uuid1 uuid2] pending-pair
             [channel1 channel2] (map #(gs/channel-for-player (gs/current-global-state) %) pending-pair)
             game-id (u/gen-uuid)]
-        (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
-        (send-command {:type :start-game
-                       :data {:game-id game-id
-                              :enemy (gs/get-player-name (gs/current-global-state) uuid2)}}
-                      channel1)
-        (send-command {:type :start-game
-                       :data {:game-id game-id
-                              :enemy (gs/get-player-name (gs/current-global-state) uuid1)}}
-                      channel2)
+        (gs/update-global-state (comp
+                                 #(gs/add-game % game-id (f/make-game uuid1 uuid2))
+                                 #(apply gs/remove-from-pending % pending-pair)))
 
-        (gs/update-global-state gs/add-game game-id (f/make-game uuid1 uuid2))
-        (gs/update-global-state #(apply gs/remove-from-pending % pending-pair))))
+        (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
+        (let [added-game (gs/get-game (gs/current-global-state) game-id)
+              p1-goal (f/get-goal added-game uuid1)
+              p2-goal (f/get-goal added-game uuid2)]
+          (send-command {:type :start-game
+                               :data {:game-id game-id
+                                      :enemy (gs/get-player-name (gs/current-global-state) uuid2)
+                                      :goal-name (:name p1-goal)
+                                      :goal-string (:raw p1-goal)}}
+                              channel1)
+          (send-command {:type :start-game
+                         :data {:game-id game-id
+                                :enemy (gs/get-player-name (gs/current-global-state) uuid1)
+                                :goal-name (:name p2-goal)
+                                :goal-string (:raw p2-goal)}}
+                        channel2))
+        ))
     (recur)))
 
 (defn make-player-update-data [game-state player-uuid]
