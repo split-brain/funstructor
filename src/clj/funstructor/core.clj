@@ -6,7 +6,7 @@
             [ring.middleware.reload :as reload]
             [ring.middleware.stacktrace :as st]
             [chord.http-kit :refer [wrap-websocket-handler]]
-            [clojure.core.async :refer [<! >! put! close! go-loop]]
+            [clojure.core.async :refer [<! >! put! close! go-loop chan]]
             [compojure.core :refer [defroutes GET]]
 
             [funstructor.commands :as commands]
@@ -28,7 +28,9 @@
   (GET "/cljs" [] (redirect "index-cljs.html"))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/ws" [] (-> ws-handler
-                    (wrap-websocket-handler {:format :str})))
+                    (wrap-websocket-handler {:format :str
+                                             :read-ch (chan nil nil #(.printStackTrace %))
+                                             :write-ch (chan nil nil #(.printStackTrace %))})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
@@ -36,8 +38,9 @@
   (handler/site app-routes))
 
 (def application (-> handler
-                     reload/wrap-reload
-                     st/wrap-stacktrace))
+                     ;(st/wrap-stacktrace)
+                     (reload/wrap-reload)
+                     ))
 
 (defn -main [& args]
   (let [port (Integer/parseInt
