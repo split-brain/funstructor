@@ -1,6 +1,7 @@
 (ns funstructor.cards-functions
   (:require
    [funstructor.utils :as u]
+   [funstructor.funstruct-base :as base]
    [funstructor.cards :as c]))
 
 (def start-cards-num 6)
@@ -10,17 +11,19 @@
   {:terminal :gap
    :value nil})
 
-(defn- make-player-state [opponent]
+(defn- make-player-state [goal opponent]
   {:ready false
    :opponent opponent
    :cards []
    :funstruct [(gap)]
+   :goal goal
    :board []})
 
 (defn make-game [p1 p2]
   {:players
-   {p1 (make-player-state p2)
-    p2 (make-player-state p1)}
+   (let [[f1 f2] (base/get-two-random-funstructs)]
+     {p1 (make-player-state f1 p2)
+      p2 (make-player-state f2 p1)})
    :current-turn p1
    :turn-ends 0
    :turn 1})

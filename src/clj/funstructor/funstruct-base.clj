@@ -28,7 +28,7 @@
   (try (Long/parseLong s)
        (catch NumberFormatException e nil)))
 
-(defn token->terminal [token]
+(defn- token->terminal [token]
   (let [m {"(" {:terminal :left-paren}
            ")" {:terminal :right-paren}
            "[" {:terminal :left-square}
@@ -41,7 +41,7 @@
      :else (throw (IllegalArgumentException.
                    "Invalid token")))))
 
-(defn s->funstruct [s]
+(defn- s->funstruct [s]
   (-> (str "\\(|\\)|\\[|\\]|[0-9]+|" id-regex)
       (re-pattern)
       (re-seq s)
@@ -51,8 +51,8 @@
 (defn get-two-random-funstructs []
   (let [[f1 f2] (take 2 (shuffle (keys funstructs)))
         s1 (get funstructs f1) s2 (get funstructs f2)]
-    [{:name f1 :raw s1 :funstruct (s->funstruct s1)}
-     {:name f2 :raw s2 :funstruct (s->funstruct s2)}]))
+    [{:name f1 :raw s1}
+     {:name f2 :raw s2}]))
 
 (defn print-terminal-count []
   (doseq [k (keys funstructs)]
