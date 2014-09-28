@@ -160,11 +160,11 @@
   (let [game-id (u/uuid-from-string (get-in command [:data :game-id]))
         message (get-in command [:data :message])
         player-id (gs/player-for-channel (gs/current-global-state) channel)]
-    (send-command {:type :chat-message-response
-                   :data {:player-id (gs/get-player-name (gs/current-global-state) player-id)
-                          :message message}}
-                  (map #(gs/channel-for-player (gs/current-global-state) %)
-                       (f/get-game-players (gs/get-game (gs/current-global-state) game-id))))))
+    (send-command-by-channels {:type :chat-message-response
+                               :data {:player-id (gs/get-player-name (gs/current-global-state) player-id)
+                                      :message message}}
+                              (map #(gs/channel-for-player (gs/current-global-state) %)
+                                   (f/get-game-players (gs/get-game (gs/current-global-state) game-id))))))
 
 (defmethod handle-command :default [command channel]
   (u/printerr "Unrecognized command: " command))
