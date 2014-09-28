@@ -26,6 +26,10 @@ funs.Views.GameTable = React.createClass({
             funs.Views.Task          (null, funs.state['task'])
         ];
 
+        if(!funs.state.myTurn){
+            children.push(funs.Views.OpponentTurn());
+        }
+
         var game = R.section({
                 id: 'game'
             }, children);
@@ -34,7 +38,38 @@ funs.Views.GameTable = React.createClass({
     }
 });
 
+funs.Views.OpponentTurn = React.createClass({
+    render: function(){
+        var R = React.DOM;
+        return R.div({
+            className: 'opponentTurn'
+        },R.div(null,'Opponent\'s Turn'));
+    }
+});
+
 funs.Views.YourField = React.createClass({
+    preventDefault: function (event) {
+        event.preventDefault();
+    },
+    drop: function(event){
+        event.preventDefault();
+        if(!funs.state.myTurn){
+            return;
+        }
+        var data;
+        try {
+            data = JSON.parse(event.dataTransfer.getData('text'));
+        } catch (e) {
+            console.warn(e);
+            return;
+        }
+        
+        funs.ondrop({
+            type: 'YourField',
+            drag: data,
+            drop: this.props
+        });
+    },
     render: function() {
         var R = React.DOM;
         var functors = this.props.children;
@@ -44,18 +79,20 @@ funs.Views.YourField = React.createClass({
         
         functors.forEach(function(f,i){
             f.i = i;
+            f.self = true;
             funList.push(funs.Views.Func(f));
-            if(i < (l - 1) || true){
-                funList.push(funs.Views.Func({
-                    terminal : 'space',
-                    value : null,
-                    i : i
-                }));
-            }
+            funList.push(funs.Views.Func({
+                terminal : 'space',
+                value : null,
+                i : i,
+                self : true
+            }));
         });
 
         return R.div({
-            className: 'field your'
+            'onDrop'  : this.drop,
+            'onDragOver'    : this.preventDefault,
+            className : 'field your'
         },funList);
     }
 });
@@ -89,15 +126,22 @@ funs.Views.YourHand = React.createClass({
     render: function() {
         var R = React.DOM;
         var cardModels = this.props.children;
+        var _draggable = true;
+        var options = {
+                className : 'card'
+            };
+
+        if(!funs.state.myTurn){
+            _draggable = false;
+        }
 
         var cards = cardModels.map(function(c, i){
-            return R.div({
-                className : 'card',
-                draggable : "true",
-                ondragstart : '"funs.ondragstart(event)"'
-            }, funs.Views.Card({
+            return R.div(options, funs.Views.Card({
+                    _draggable : _draggable,
                     style : {},
-                    url   : c.img
+                    url   : c.img,
+                    data : c,
+                    index : i
                 }));
         });
 
@@ -141,38 +185,87 @@ funs.Views.Task = React.createClass({
     render: function() {
         var R = React.DOM;
 
+        var children = [
+            R.p(null, this.props.children),
+            funs.Views.EndTurn()
+        ];
+
         return R.div({
             className: 'task'
-        },this.props.children);
+        }, children);
+    }
+});
+
+funs.Views.EndTurn = React.createClass({
+    click: function(){
+        if(!funs.state.myTurn){
+            return;
+        }
+        funs.endTurn();
+    },
+    render: function() {
+        var R = React.DOM;
+        return R.div({
+            className: 'button endTurn'
+        },R.button({
+            onClick: this.click
+        }, 'End Turn'));
     }
 });
 
 funs.Views.Func = React.createClass({
+
+    preventDefault: function (event) {
+        event.preventDefault();
+    },
+
+    drop: function (event) {
+        event.preventDefault();
+        if(!funs.state.myTurn){
+            return;
+        }
+        var data;
+        try {
+            data = JSON.parse(event.dataTransfer.getData('text'));
+        } catch (e) {
+            console.warn(e);
+            return;
+        }
+        funs.ondrop({
+            type: 'Func',
+            drag: data,
+            drop: this.props
+        });
+    },
+  
     render: function() {
         var R = React.DOM;
         var text;
         var terminal = this.props.terminal;
         console.log('FUNC', this.props);
+        var symDict = {
+            'gap' : '_',
+            'space' : R.img({src : '/img/e.png'}),
+            'left-paren' : '(',
+            'right-paren' : ')',
+            'left-square' : '[',
+            'right-square' : ']',
+            'num' : this.props.value
+        };
         
-        switch(terminal){
-            case 'gap':
-                text = '_';
-                break;
-            case 'space':
-                text = ' ';
-                break;
-            default :
-                text = '';
-                break;
-        }
+        text = symDict[terminal] || 'UN';
         
-        return R.span({
+        var options = {
             className       : 'terminal ' + terminal + ' i_' + this.props.i,
             'data-index'    : this.props.i,
-            'data-terminal' : terminal,
-            'onDragOver'    : funs.ondragover,
-            'onDrop'        : funs.ondrop
-        },text);
+            'data-terminal' : terminal
+        };
+        if(this.props.self){
+            options.onDragOver = this.preventDefault;
+            options.onDrop = this.drop;
+        }
+        
+        return R.span(options, text);
     }
 });
 
