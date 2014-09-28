@@ -40,6 +40,12 @@ funs.Views.GameTable = React.createClass({
                 id: 'game'
             }, children);
         
+        if(!funs.state.started){
+            funs.audio.start_game();
+        }
+        
+        funs.state.started = true;
+        
         return game;
     }
 });
@@ -218,6 +224,9 @@ funs.Views.LogStream = React.createClass({
             ]);
             return message;
         });
+        children.push(R.div({
+            className: 'message empty'
+        }));
         return R.div({
             className: 'logStream'
         },children);
@@ -244,7 +253,7 @@ funs.Views.SendMessage = React.createClass({
         return R.div({
             className: 'sendMessage input'
         }, R.input({
-            onKeyPress: this.keypress,
+            onKeyDown: this.keypress,
             type: 'text'
         }));
     }
@@ -272,6 +281,7 @@ funs.Views.EndTurn = React.createClass({
             return;
         }
         funs.endTurn();
+        funs.audio.end_turn();
     },
     render: function() {
         var R = React.DOM;
@@ -360,7 +370,9 @@ funs.Views.WinLoose = React.createClass({
         
         if(youAreWinner){
             text = 'You win!';
-        }else if(win === funs.state.enemy){
+            funs.audio.victory();
+        }else if(win === funs.state.gameData.opponent){
+            funs.audio.defeat();
             text = funs.state.enemy + ' win!';
         }
         

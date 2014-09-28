@@ -8,7 +8,7 @@
                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                 [http-kit "2.1.16"]
                 [compojure "1.1.9"]
-                [jarohen/chord "0.4.2"]
+                [jarohen/chord "0.4.2" :exclusions [org.clojure/clojure]]
                 [ring "1.3.1"]
                 [hiccup "1.0.5"]
                 [cheshire "5.3.1"]

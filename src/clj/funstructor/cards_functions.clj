@@ -5,6 +5,7 @@
    [funstructor.cards :as c]))
 
 (def start-cards-num 6)
+(def card-limit-on-hand 10)
 (def cards-per-turn 2)
 
 (defn log-message [game message]
@@ -13,6 +14,10 @@
 (defn- delete-all-messages
   [game]
   (update-in game [:messages] (fn [v] (vec []))))
+
+
+(defn- get-player-name-by-id [game player]
+  (get-in game [:player-uuid-map player]))
 
 (defn- gap []
   {:terminal :gap
@@ -36,10 +41,11 @@
     :turn-ends 0
     :turn 1
     :messages []
+    :player-uuid-map {} ;; uuid -> name
     :win nil}
    (log-message "Game started!")
    (log-message (str p1 " vs " p2))
-   (#(log-message % (str (:current-turn %)" moves")))))
+   (#(log-message % (str (get-player-name-by-id % (:current-turn %)) " moves")))))
 
 (defn player-win [game player & reason]
   (-> game
@@ -105,7 +111,12 @@
   "Add card to player state"
   [game-map player-key card]
   ((apply-to-cards game-map player-key)
-   (fn [v] (conj v card))))
+   (fn [v]
+     (if (< (count v) card-limit-on-hand)
+       (conj v card) ;; just add card
+       (-> v
+           (u/delete-from-vector (rand-int (count v)))
+           (conj card))))))
 
 (defn take-cards [game-map player-key num]
   (reduce
@@ -132,7 +143,7 @@
   (-> game
       (delete-all-messages)
       (assoc :current-turn (get-opponent game (:current-turn game)))
-      (#(log-message % (str (:current-turn %)" moves")))
+      (#(log-message % (str (get-player-name-by-id % (:current-turn %))" moves")))
       (update-in [:turn-ends] inc)))
 
 (defn- decrement-duration-for-player [game player]
@@ -402,7 +413,7 @@
         (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
         ;; delete card from player
         (delete-card player-key card-pos)
-        (log-message (str player-key " played " (get-card game-map player-key card-pos)))
+        (log-message (str (get-player-name-by-id game-map player-key) " played " (get-card game-map player-key card-pos)))
         
         (check-for-win)
         ;; log winner

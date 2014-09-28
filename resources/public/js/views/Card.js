@@ -26,6 +26,7 @@ funs.Views.Card = React.createClass({
     dragEnd: function(event){
         var crt = event.currentTarget;
         crt.style.opacity = "1";
+        funs.audio.card_play();
         funs.ondragend();
     },
     render: function() {
