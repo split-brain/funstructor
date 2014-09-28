@@ -44,6 +44,11 @@ Description is written using following pattern:
     - key - structure that allow client to render card
     - turns-left - how many turns the effect of card will take effect
   - *enemy-board* - same but for the enemy
+  - *win* - shows who won the game, can contain following values:
+    - null/nil - no one wins, game goes on
+    - uuid of player 1 - player 1 wins
+    - uuid of player 2 - player 2 wins
+    - :draw
   - *messages* - array of log messages that server produced
 - **"chat-message-response"**
   - *player-id* - id of player that sent message

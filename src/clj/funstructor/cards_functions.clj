@@ -35,7 +35,8 @@
     :current-turn p1
     :turn-ends 0
     :turn 1
-    :messages []}
+    :messages []
+    :win nil}
    (log-message "Game started!")
    (log-message (str p1 " vs " p2))
    (#(log-message % (str (:current-turn %)" moves")))))

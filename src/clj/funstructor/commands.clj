@@ -84,7 +84,7 @@
           (assoc :enemy-funstruct (f/get-funstruct game-state opponent-uuid))))))
 
 (defn make-game-update-data [game]
-  (select-keys game [:messages]))
+  (select-keys game [:messages :win]))
 
 (defn make-update-data [game player]
   (merge (make-game-update-data game)
