@@ -94,6 +94,8 @@ var funs = funs || {};
             console.log('start-game', data);
             funs.state['game-id'] = data['game-id'];
             funs.state['task']    = data['task'] || 'no task yet';
+            funs.state.enemy = data['enemy'];
+
             ws.send({
                 type: 'start-game-ok',
                 data: {
@@ -106,11 +108,6 @@ var funs = funs || {};
             funs.state.gameData = data;
             funs.state.myTurn = funs.state['uuid'] === funs.state.gameData['current-turn'];
             funs.switch(funs.Views.GameTable, data);
-//            setTimeout(function(){
-//                var $cards = $('.your.hand > .card');
-//                var $func = $('.your.hand > .card');
-//                $cards.attr('ondragstart', 'funs.ondragstart(event)');
-//            }, 100);
         }
     };
 
@@ -165,6 +162,7 @@ var funs = funs || {};
             }
             var name = $input.val();
     //        requested = true;
+            $('head > title').eq(0).html('Funstructor : ' + name);
             funs.websocket.send({
                 type: "game-request",
                 data: {
@@ -226,7 +224,7 @@ var funs = funs || {};
             $('.field.your').addClass('active');
         }
         if(type === 'terminal'){
-            $('.field.your .terminal.gap').addClass('active');
+            $('.field.your .terminal').not('.space').addClass('active');
         }
     };
     funs.ondragend = function(e){
@@ -296,6 +294,12 @@ var funs = funs || {};
         
         if(isPositionable(data)){
             action.data['funstruct-idx'] = data.drop.i;
+            if(data.drop.terminal !== 'gap' && data.drag.data.value === 'terminal'){
+                return;
+            }
+            if(data.drop.terminal !== 'space' && data.drag.data.name === 'Gap'){
+                return;
+            }
         }
         
         if(isInput(data)){
