@@ -1,6 +1,12 @@
 (ns funstructor.view
   (:require [reagent.core :as reagent :refer [atom]]))
 
+(defn get-element [id]
+  (.getElementById js/document id))
+
+(defn render [component]
+  (reagent/render-component [component] (get-element "app")))
+
 (defn- opponent-field []
   [:div.opponent-field])
 
@@ -18,38 +24,27 @@
    [:span.loader
     [:span.loader-inner]]])
 
-(defn login-form []
-  [:section#start
-   [:form#startForm {:action "#"}
-    [:div.input.start
-     [:label "Your name"]
-     [:input {:type "text"}]]
-    [:div.cb.h20]
-    [:div.button.start
-     [:input {:value "Play"
-              :type "submit"
-              :on-click start-new-game!}]]]])
+(defn login-form [handler]
 
-(defn game []
+  (let [on-click-fn #(let [player-name (.-value (get-element "name"))]
+                       (render loader)
+                       (handler player-name))]
+    [:section#start
+     [:form#startForm {:action "#"}
+      [:div.input.start
+       [:label "Your name"]
+       [:input {:type "text" :id "name"}]]
+      [:div.cb.h20]
+      [:div.button.start
+       [:input {:value "Play"
+                :type "submit"
+                :on-click on-click-fn}]]]]))
+
+(defn game [handler]
   [:section#game
    [opponent-field]
    [field]
    [hand]
    [legend]]
   [:div#flyingCards]
-  [login-form])
-
-(defn login-form []
-  [:section#start
-   [:form#startForm {:action "#"}
-    [:div.input.start
-     [:label "Your name"]
-     [:input {:type "text"}]]
-    [:div.cb.h20]
-    [:div.button.start
-     [:input {:value "Play"
-              :type "submit"
-              :on-click start-new-game!}]]]])
-
-(defn render [component]
-  (reagent/render-component [component] (.getElementById js/document "app")))
+  [login-form handler])

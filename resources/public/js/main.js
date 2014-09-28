@@ -104,12 +104,13 @@ var funs = funs || {};
         'game-update' : function(data){
             funs.stopLoading();
             funs.state.gameData = data;
+            funs.state.myTurn = funs.state['uuid'] === funs.state.gameData['current-turn'];
             funs.switch(funs.Views.GameTable, data);
-            setTimeout(function(){
-                var $cards = $('.your.hand > .card');
-                var $func = $('.your.hand > .card');
-                $cards.attr('ondragstart', 'funs.ondragstart(event)');
-            }, 100);
+//            setTimeout(function(){
+//                var $cards = $('.your.hand > .card');
+//                var $func = $('.your.hand > .card');
+//                $cards.attr('ondragstart', 'funs.ondragstart(event)');
+//            }, 100);
         }
     };
 
@@ -224,8 +225,61 @@ var funs = funs || {};
     funs.ondragover = function(e){
         console.log('ondragover', e);
     };
-    funs.ondrop = function(e){
-        console.log('ondrop', e);
+    funs.ondrop = function(data){
+        if(funs.sending){
+            return;
+        }
+        funs.sending = true;
+        setTimeout(function(){
+            funs.sending = false;
+        }, 200);
+        console.log('ondrop', data);
+        funs.validateAction(data);
+    };
+})(funs);
+
+// GAME ITERACTIONS
+(function(funs){
+    funs.endTurn = function(){
+        funs.websocket.send({
+            'type': 'end-turn',
+            data : {
+                'game-id' : funs.state['game-id']
+            }
+        });
+    }
+    funs.validateAction = function(data){
+        var action = {
+            type : 'action',
+            data : {
+                'game-id' : funs.state['game-id'],
+                'card-idx': data.drag.index,
+                'target'  : data.drag.data.target
+            }
+        };
+        
+        if(isPositionable(data)){
+            action.data['funstruct-idx'] = data.drop.i;
+        }
+        
+        funs.websocket.send(action);
+        
+        function isPositionable(data){
+            var isPositionable = false;
+            var posList = [
+                'left-paren',
+                'right-paren',
+                'left-square',
+                'right-square',
+                'num'
+            ];
+            
+            if(data.drag.data.type === 'terminal' || data.drag.data.name === 'Gap'){
+                isPositionable = true;
+            }
+            
+            return isPositionable;
+        }
     };
 })(funs);
 

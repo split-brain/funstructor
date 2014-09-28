@@ -2,7 +2,7 @@
   (:require
             [chord.client :refer [ws-ch]]
             [cljs.core.async :refer [chan <! >! put! close! timeout]]
-            [reagent.core :as reagent :refer [atom]]
+            [reagent.core :as r :refer [atom]]
             [funstructor.view :as v :refer [render]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
@@ -10,7 +10,6 @@
   (js/alert (str "Message recieved: " (prn-str msg))))
 
 (defn start-new-game! [player-name]
-  (render v/loader)
   (go
     (let [ws-url "ws://localhost:8080/ws"
           {:keys [ws-channel error]} (<! (ws-ch ws-url {:format :json-kw}))]
@@ -23,7 +22,7 @@
             (recur (<! ws-channel))
             ))))))
 
-(defn run []
-  (render v/game start-new-game!))
+(defn ^:export run []
+  (r/render-component [v/game start-new-game!] (v/get-element "app")))
 
-(render v/game start-new-game!)
+;(r/render-component [v/game start-new-game!] (v/get-element "app"))
