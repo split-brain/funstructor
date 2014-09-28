@@ -20,7 +20,7 @@
     :action-equality-1
     :action-equality-2
     :action-equality-3
-    
+
     })
 
 (def cards
@@ -100,7 +100,7 @@
     "add gap to the leftmost position of your funstruct"
     :target :self
     :type :mutator
-    :weight 100
+    :weight 75
     :img "mutator_left_gap.svg"}
 
    :mutator-right-gap
@@ -109,7 +109,7 @@
     "add gap to the rightmost position of your funstruct"
     :target :self
     :type :mutator
-    :weight 100
+    :weight 75
     :img "mutator_right_gap.svg"}
 
    :mutator-position-gap
@@ -118,7 +118,7 @@
     "add gap to the specific position of your funstruct"
     :target :self
     :type :mutator
-    :weight 100
+    :weight 150
     :img "mutator_pos_gap.svg"}
 
    :mutator-shot
@@ -143,7 +143,7 @@
     :type :action
     :weight 40
     :img "action_thief_1.svg"}
-   
+
    :action-discard-1
    {:name "Discard v1.0"
     :description
@@ -205,7 +205,7 @@ and take 5 from deck"
     :turns-left 3
     :img "duration_luck_2.svg"}
 
-   
+
    })
 
 (defn- in? [n a b]
