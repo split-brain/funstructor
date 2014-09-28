@@ -21,6 +21,9 @@
           (let [json (encode-command command)]
             (>! channel json))))))
 
+(defn send-command [command channel]
+  (send-commands :commands [command] :channels [channel]))
+
 (defn pending-checker []
   (go-loop []
     (<! (timeout 3000))
@@ -29,14 +32,14 @@
             [channel1 channel2] (map #(channel-for-uuid (current-global-state) %) pending-pair)
             game-id (u/gen-uuid)]
         (u/log "Taking two players for game " game-id " with uuids: " pending-pair "\n\n")
-        (send-commands :commands [{:type :start-game
-                                   :data {:game-id game-id
-                                          :enemy uuid2}}]
-                       :channels [channel1])
-        (send-commands :commands [{:type :start-game
-                                   :data {:game-id game-id
-                                          :enemy uuid1}}]
-                       :channels [channel2])
+        (send-command {:type :start-game
+                        :data {:game-id game-id
+                               :enemy uuid2}}
+                       channel1)
+        (send-command {:type :start-game
+                        :data {:game-id game-id
+                               :enemy uuid1}}
+                       channel2)
 
         (update-global-state add-game game-id (f/make-game uuid1 uuid2))
         (update-global-state #(apply remove-from-pending % pending-pair))))
@@ -58,13 +61,13 @@
         [p1 p2 :as players] (f/get-game-players initialized-game)
         [c1 c2] (map #(channel-for-uuid (current-global-state) %) players)]
     (u/log "Sending game-update's for game " game-id)
-    (send-commands :commands [{:type :game-update
-                               :data (make-update-data initialized-game p1)
-                               }]
-                   :channels [c1])
-    (send-commands :commands [{:type :game-update
-                               :data (make-update-data initialized-game p2)}]
-                   :channels [c2])))
+    (send-command {:type :game-update
+                    :data (make-update-data initialized-game p1)
+                    }
+                   c1)
+    (send-command {:type :game-update
+                    :data (make-update-data initialized-game p2)}
+                   c2)))
 
 
 ;; Functions for command handling
@@ -77,10 +80,10 @@
     (update-global-state (comp #(add-channel % channel uuid)
                                #(add-pending % uuid)))
     (u/log "Processing game-request and generating uuid: " uuid)
-    (send-commands :commands [{:type :game-request-ok
-                               :data {:uuid uuid
-                                      :pending (get-pending-players (current-global-state))}}]
-                   :channels [channel]
+    (send-command {:type :game-request-ok
+                    :data {:uuid uuid
+                           :pending (get-pending-players (current-global-state))}}
+                   channel
                    )))
 
 (defmethod handle-command "start-game-ok" [command channel]

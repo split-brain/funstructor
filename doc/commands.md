@@ -15,6 +15,11 @@ Description is written using following pattern:
   - *game-id* - uuid of game that user belongs to
 - **"end-turn"** - is sent when player presses "End Turn" button
   - *game-id* - uuid of game that user belongs to
+- **"action"** - is sent when player makes some action in his turn
+  - *game-id* - uuid of game that user belongs to
+  - *card-idx* - index of card that was used
+  - *target* - "self", "opponent" or "both": indicates on whom card was used
+  - *funstruct-idx* (optional) - index of funstruct item on what card was used
 
 ## Server side commands
 - **"game-request-ok"** - is sent as response to client's **"game-request"**
