@@ -338,7 +338,7 @@
   :mutator-cleanup
   [game player-key card & args]
   (let [opponent (get-opponent game player-key)]
-    ((apply-to-funstruct game player-key)
+    ((apply-to-funstruct game opponent)
      (fn [funstruct]
        (filterv #(not= :gap (:terminal %)) funstruct)))))
 
