@@ -4,6 +4,7 @@
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [ring.middleware.reload :as reload]
+            [ring.middleware.stacktrace :as st]
             [chord.http-kit :refer [wrap-websocket-handler]]
             [clojure.core.async :refer [<! >! put! close! go-loop]]
             [compojure.core :refer [defroutes GET]]
@@ -35,7 +36,8 @@
   (handler/site app-routes))
 
 (def application (-> handler
-                     reload/wrap-reload))
+                     reload/wrap-reload
+                     st/wrap-stacktrace))
 
 (defn -main [& args]
   (let [port (Integer/parseInt
