@@ -334,6 +334,13 @@
       game-map)))
 
 (defmethod apply-card
+  :cleanup
+  [game player-key card & args]
+  ((apply-to-funstruct game player-key)
+   (fn [funstruct]
+     (remove #(= :gap (:terminal %)) funstruct))))
+
+(defmethod apply-card
   :action-equality-1
   [game-map player-key card & args]
   (let [opp (get-opponent game-map player-key)]
