@@ -29,7 +29,9 @@ funs.Views.GameTable = React.createClass({
         if(!funs.state.myTurn){
             children.push(funs.Views.OpponentTurn());
         }
-
+        setTimeout(function(){
+            funs.$body.hide(0).show(0);
+        }, 20);
         var game = R.section({
                 id: 'game'
             }, children);
@@ -226,7 +228,7 @@ funs.Views.Func = React.createClass({
         }
         var data;
         try {
-            data = JSON.parse(event.dataTransfer.getData('text'));
+            data = JSON.parse(event.dataTransfer.getData('text/plain'));
         } catch (e) {
             console.warn(e);
             return;
@@ -242,7 +244,7 @@ funs.Views.Func = React.createClass({
         var R = React.DOM;
         var text;
         var terminal = this.props.terminal;
-        console.log('FUNC', this.props);
+//        console.log('FUNC', this.props);
         var symDict = {
             'gap' : '_',
             'space' : R.img({src : '/img/e.png'}),

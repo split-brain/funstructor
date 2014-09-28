@@ -356,6 +356,17 @@ body > footer{
     height: 180px;
 }
 
+.field.active{
+    background-color: rgba(50,50,0,0.3);
+    -webkit-box-shadow: 0 0 5px 1px rgba(50,50,0,0.5);
+    box-shadow: 0 0 5px 1px rgba(50,50,0,0.5);
+}
+.terminal.active{
+    background-color: rgba(255,255,0,0.3);
+    -webkit-box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
+    box-shadow: 0 0 5px 1px rgba(255,255,0,0.5);
+}
+
 .terminal{
     height: 28px;
     display: inline-block;

@@ -216,11 +216,22 @@ var funs = funs || {};
 
 // DRAG_N_DROP
 (function(funs){
-    funs.ondragstart = function(e){
-        console.log('ondragstart', e);
+    funs.ondragstart = function(data){
+        console.log('ondragstart', data);
+        var type = data.data.type;
+        var name = data.data.name;
+        if(name === 'Gap'){
+            $('.field.your .terminal.space').addClass('active');
+        }else if(type === 'mutator'){
+            $('.field.your').addClass('active');
+        }
+        if(type === 'terminal'){
+            $('.field.your .terminal.gap').addClass('active');
+        }
     };
-    funs.ondrag = function(e){
-        console.log('ondrag', e);
+    funs.ondragend = function(e){
+        console.log('onend');
+        $('.active').removeClass('active');
     };
     funs.ondragover = function(e){
         console.log('ondragover', e);
@@ -247,7 +258,32 @@ var funs = funs || {};
                 'game-id' : funs.state['game-id']
             }
         });
-    }
+    };
+    funs.makeInput = function(data){
+        if(data.drop.terminal !== 'gap'){
+            return;
+        }
+        var $span = $('.field.your .gap.i_' + data.drop.i);
+        $span.html('<input type="text" value="">');
+        var $input = $span.find('input').eq(0);
+        $input.focus();
+        $input.keypress(function(e) {
+            console.log(e);
+            if(e.which === 13) {
+                var action = {
+                    type : 'action',
+                    data : {
+                        'game-id' : funs.state['game-id'],
+                        'card-idx': data.drag.index,
+                        'target'  : data.drag.data.target,
+                        'funstruct-idx' : data.drop.i,
+                        'value'   : $input.val()
+                    }
+                };
+                funs.websocket.send(action);
+            }
+        });
+    };
     funs.validateAction = function(data){
         var action = {
             type : 'action',
@@ -262,22 +298,26 @@ var funs = funs || {};
             action.data['funstruct-idx'] = data.drop.i;
         }
         
+        if(isInput(data)){
+            funs.makeInput(data);
+            return;
+        }
+        
         funs.websocket.send(action);
+        
+        function isInput(data){
+            var isInput = false;
+            if(data.drag.data.value === 'num' || data.drag.data.value === 'id'){
+                isInput = true;
+            }
+            return isInput;
+        };
         
         function isPositionable(data){
             var isPositionable = false;
-            var posList = [
-                'left-paren',
-                'right-paren',
-                'left-square',
-                'right-square',
-                'num'
-            ];
-            
             if(data.drag.data.type === 'terminal' || data.drag.data.name === 'Gap'){
                 isPositionable = true;
             }
-            
             return isPositionable;
         }
     };
