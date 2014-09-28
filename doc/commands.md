@@ -20,6 +20,9 @@ Description is written using following pattern:
   - *card-idx* - index of card that was used
   - *target* - "self", "opponent" or "both": indicates on whom card was used
   - *funstruct-idx* (optional) - index of funstruct item on what card was used
+- **"chat-message"**
+  - *game-id* - uuid of game that user belongs to
+  - *message* - string that represents message that was sent
 
 ## Server side commands
 - **"game-request-ok"** - is sent as response to client's **"game-request"**
@@ -31,6 +34,9 @@ Description is written using following pattern:
   - *enemy-cards-num* - number of cards that enemy has
   - *funstruct* - funstruct of player
   - *enemy-funstruct* - funstruct of enemy
+- **"chat-message-response"**
+  - *player-id* - id of player that sent message
+  - *message* - message that was sent
 
 ## Examples
 - **"game-request"** :

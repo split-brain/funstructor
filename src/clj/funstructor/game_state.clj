@@ -24,10 +24,10 @@
 (defn get-pending-players [global-state]
   (:pending global-state))
 
-(defn channel-for-uuid [global-state uuid]
+(defn channel-for-player [global-state uuid]
   (get-in global-state [:uuid-channel-map uuid]))
 
-(defn uuid-for-channel [global-state channel]
+(defn player-for-channel [global-state channel]
   (get-in global-state [:channel-uuid-map channel]))
 
 (defn get-game [global-state game-id]

@@ -13,7 +13,7 @@
   (:gen-class))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
-  (println "Opened connection from" (:remote-addr req))
+  (u/log "Opened connection from" (:remote-addr req))
   (go-loop []
     (when-let [{:keys [message error] :as msg} (<! ws-channel)]
       (u/log "Received message" msg)

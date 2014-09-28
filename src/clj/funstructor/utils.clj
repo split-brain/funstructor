@@ -19,7 +19,7 @@
 
 (defn start-logging []
   (go-loop []
-    (apply println (<! log-chan))
+    (apply println (concat (<! log-chan) ["\n"]))
     (recur)))
 
 (defn log [& args]
