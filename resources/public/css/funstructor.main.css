@@ -348,10 +348,10 @@ body > footer{
 }
 .field{
     text-align: left;
-    left: 30px;
-    right: 330px;
+    left: 10px;
+    right: 300px;
     background-color: rgba(0,0,0, 0.7);
-    height: calc(50% - 230px);
+    height: calc(50% - 216px);
     color: #FFFF00;
     font-size: 26px;
     line-height: 28px;
@@ -366,7 +366,7 @@ body > footer{
 .hand.your{
     left: 0px;
     right: 300px;
-    bottom: 0px;
+    bottom: 15px;
     height: 180px;
     overflow-x: scroll;
     overflow-y: hidden;
@@ -375,7 +375,7 @@ body > footer{
 .hand.opponent{
     left: 0;
     right: 300px;
-    top: 0;
+    top: 15px;
     height: 180px;
     overflow-x: scroll;
     overflow-y: hidden;
@@ -590,4 +590,37 @@ body > footer{
     z-index: 2014;
     overflow: hidden;
     background-color: rgba(0,0,0,0.7);
+}
+
+.board{
+    position: absolute;
+    bottom: 210px;
+    height: 40px;
+    right: 300px;
+}
+.board > a{
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 3px solid black;
+}
+.board > a > img{
+    width: 80px;
+    height: auto;
+    position: relative;
+    left: -23px;
+    top: -21px;
+}
+.board > a > span{
+    float: left;
+    position: relative;
+    top: -109px;
+    left: 14px;
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255,255,255,0.8);
+    line-height: 20px;
 }
