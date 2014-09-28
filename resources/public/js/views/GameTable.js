@@ -176,10 +176,62 @@ funs.Views.OpponentHand = React.createClass({
 funs.Views.Log = React.createClass({
     render: function() {
         var R = React.DOM;
+        
+        var data = {
+            logs: funs.state.logs || []
+        };
+
+        var children = [
+            funs.Views.LogStream(data),
+            funs.Views.SendMessage()
+        ];
 
         return R.div({
             className: 'log'
-        },this.props.children);
+        },children);
+    }
+});
+funs.Views.LogStream = React.createClass({
+    render: function(){
+        var R = React.DOM;
+        var data = this.props.children;
+        var logs = this.props.logs;
+        console.log('LogStream', this.props);
+        var children = logs.map(function(l){
+            var message = R.div({
+                className: 'message'
+            }, JSON.stringify(l));
+            return message;
+        });
+        return R.div({
+            className: 'logStream'
+        },children);
+    }
+});
+funs.Views.SendMessage = React.createClass({
+    keypress: function(e){
+        if(e.which === 13) {
+            var $input = $(e.currentTarget);
+            var action = {
+                type : 'chat-message',
+                data : {
+                    'game-id' : funs.state['game-id'],
+                    'message'   : $input.val()
+                }
+            };
+            funs.websocket.send(action);
+            $input.val('');
+        }
+    },
+    render: function(){
+        var R = React.DOM;
+        
+        return R.div({
+            className: 'sendMessage input'
+        }, R.input({
+            onKeyPress: this.keypress,
+            type: 'text'
+        }));
     }
 });
 

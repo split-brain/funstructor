@@ -108,6 +108,11 @@ var funs = funs || {};
             funs.state.gameData = data;
             funs.state.myTurn = funs.state['uuid'] === funs.state.gameData['current-turn'];
             funs.switch(funs.Views.GameTable, data);
+        },
+        'chat-message-response': function(data){
+            funs.state.logs = funs.state.logs || [];
+            funs.state.logs.push(data);
+            funs.switch(funs.Views.GameTable, funs.state.gameData);
         }
     };
 
