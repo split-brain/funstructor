@@ -30,7 +30,7 @@
                         {:preamble ["reagent/react.js"]
                          :output-to "resources/public/js/app.js"
                          :source-map "resources/public/js/app.js.map"
-                         :output-dir "resources/public/js"
+                         ;:output-dir "resources/public/js"
                          :optimizations :whitespace
                          :preety-print true
                          }}
@@ -38,7 +38,8 @@
                        {:id "release"
                         :source-paths ["src/cljs"]
                         :compiler
-                        {:output-to "resources/public/js/app.js"
+                        {:output-to "resources/public/js/app.min.js"
+                         :output-dir "resources/public/js"
                          :source-map "resources/public/js/app.js.map"
                          :optimizations :advanced
                          :pretty-print false

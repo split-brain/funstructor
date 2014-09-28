@@ -41,10 +41,5 @@
                 :on-click on-click-fn}]]]]))
 
 (defn game [handler]
-  [:section#game
-   [opponent-field]
-   [field]
-   [hand]
-   [legend]]
   [:div#flyingCards]
   [login-form handler])
