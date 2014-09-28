@@ -300,6 +300,7 @@
      (fn [funstruct]
        (assoc funstruct pos (gap))))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; APPLY-CARD ACTION
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -334,7 +335,7 @@
       game-map)))
 
 (defmethod apply-card
-  :cleanup
+  :mutator-cleanup
   [game player-key card & args]
   ((apply-to-funstruct game player-key)
    (fn [funstruct]
