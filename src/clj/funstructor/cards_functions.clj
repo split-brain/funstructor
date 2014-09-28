@@ -5,6 +5,7 @@
    [funstructor.cards :as c]))
 
 (def start-cards-num 6)
+(def card-limit-on-hand 10)
 (def cards-per-turn 2)
 
 (defn log-message [game message]
@@ -105,7 +106,12 @@
   "Add card to player state"
   [game-map player-key card]
   ((apply-to-cards game-map player-key)
-   (fn [v] (conj v card))))
+   (fn [v]
+     (if (< (count v) card-limit-on-hand)
+       (conj v card) ;; just add card
+       (-> v
+           (u/delete-from-vector (rand-int (count v)))
+           (conj card))))))
 
 (defn take-cards [game-map player-key num]
   (reduce
