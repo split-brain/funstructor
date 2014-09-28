@@ -21,6 +21,9 @@
     :action-equality-2
     :action-equality-3
 
+    :duration-luck-1
+    :duration-luck-2
+    
     })
 
 (def cards
