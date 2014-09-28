@@ -2,16 +2,23 @@
   (:require
    [clojure.set :as set]))
 
-(def global-state (atom {:pending #{}
-                         :uuid-channel-map {}
-                         :channel-uuid-map {}
-                         :games {}}))
+(defn make-global-state []
+  {:pending #{}
+   :uuid-channel-map {}
+   :channel-uuid-map {}
+   :uuid-name-map {}
+   :games {}})
 
-;; (defn init-game-state []
-;;   (funstructor.commands/pending-checker))
+(def global-state (atom (make-global-state)))
 
 (defn current-global-state []
   @global-state)
+
+(defn add-player-name [global-state uuid name]
+  (update-in global-state [:uuid-name-map] assoc uuid name))
+
+(defn get-player-name [global-state uuid]
+  (get-in global-state [:uuid-name-map uuid]))
 
 (defn add-channel [global-state channel uuid]
   (-> global-state

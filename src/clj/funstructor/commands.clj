@@ -36,13 +36,13 @@
             game-id (u/gen-uuid)]
         (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
         (send-command {:type :start-game
-                        :data {:game-id game-id
-                               :enemy uuid2}}
-                       channel1)
+                       :data {:game-id game-id
+                              :enemy (gs/get-player-name (gs/current-global-state) uuid2)}}
+                      channel1)
         (send-command {:type :start-game
-                        :data {:game-id game-id
-                               :enemy uuid1}}
-                       channel2)
+                       :data {:game-id game-id
+                              :enemy (gs/get-player-name (gs/current-global-state) uuid1)}}
+                      channel2)
 
         (gs/update-global-state gs/add-game game-id (f/make-game uuid1 uuid2))
         (gs/update-global-state #(apply gs/remove-from-pending % pending-pair))))
@@ -85,9 +85,12 @@
 (defmulti handle-command (fn [command channel] (:type command)))
 
 (defmethod handle-command "game-request" [command channel]
-  (let [uuid (u/gen-uuid)]
-    (gs/update-global-state (comp #(gs/add-channel % channel uuid)
-                                  #(gs/add-pending % uuid)))
+  (let [uuid (u/gen-uuid)
+        user-name (get-in command [:data :user-name])]
+    (gs/update-global-state (comp
+                             #(gs/add-player-name % uuid user-name)
+                             #(gs/add-channel % channel uuid)
+                             #(gs/add-pending % uuid)))
     (u/log "Processing game-request and generating uuid for player: " uuid)
     (send-command {:type :game-request-ok
                    :data {:uuid uuid
