@@ -199,8 +199,11 @@ funs.Views.LogStream = React.createClass({
         console.log('LogStream', this.props);
         var children = logs.map(function(l){
             var message = R.div({
-                className: 'message'
-            }, JSON.stringify(l));
+                className: funs.state.name === l['player-id'] ? 'message self' : 'message'
+            }, [
+                R.h4(null,l['player-id']),
+                R.p(null,l['message'])
+            ]);
             return message;
         });
         return R.div({

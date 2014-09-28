@@ -337,6 +337,7 @@ body > footer{
     width: 280px;
     background-color: white;
     border: 3px solid black;
+    z-index: 2010;
 }
 
 .hand.opponent .card,
@@ -418,4 +419,51 @@ body > footer{
     color: white;
     font-weight: bold;
     font-size: 26px;
+}
+
+.logStream .message{
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+.logStream .message.self{
+    background-color: #efefef;
+}
+.logStream .message h4{
+    padding: 0;
+    margin: 0;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 20px;
+    color: #3179DE;
+}
+.logStream .message p{
+    margin: 0;
+    padding: 5px;
+    font-size: 14px;
+    line-height: 16px;
+}
+.logStream{
+    position: absolute;
+    text-align: left;
+    box-sizing: border-box;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 60px;
+}
+
+.sendMessage.input{
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 3px 5px;
+}
+.sendMessage.input > input{
+    width: 100%;
+    line-height: 24px;
+    box-sizing: border-box;
 }

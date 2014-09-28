@@ -113,6 +113,10 @@ var funs = funs || {};
             funs.state.logs = funs.state.logs || [];
             funs.state.logs.push(data);
             funs.switch(funs.Views.GameTable, funs.state.gameData);
+            setTimeout(function(){
+                var $msg = $('.logStream').eq(0);
+                $msg.scrollTop($msg.prop("scrollHeight"));
+            },100);
         }
     };
 
@@ -168,6 +172,7 @@ var funs = funs || {};
             var name = $input.val();
     //        requested = true;
             $('head > title').eq(0).html('Funstructor : ' + name);
+            funs.state.name = name;
             funs.websocket.send({
                 type: "game-request",
                 data: {
