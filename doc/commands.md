@@ -40,6 +40,10 @@ Description is written using following pattern:
   - *enemy-cards-num* - number of cards that enemy has
   - *funstruct* - funstruct of player
   - *enemy-funstruct* - funstruct of enemy
+  - *board* - cards that are placed on player's board, they are pepresented following structure:
+    - key - structure that allow client to render card
+    - turns-left - how many turns the effect of card will take effect
+  - *enemy-board* - same but for the enemy
   - *messages* - array of log messages that server produced
 - **"chat-message-response"**
   - *player-id* - id of player that sent message
