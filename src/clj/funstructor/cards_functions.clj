@@ -337,9 +337,10 @@
 (defmethod apply-card
   :mutator-cleanup
   [game player-key card & args]
-  ((apply-to-funstruct game player-key)
-   (fn [funstruct]
-     (filterv #(not= :gap (:terminal %)) funstruct))))
+  (let [opponent (get-opponent game-map player-key)]
+    ((apply-to-funstruct game player-key)
+     (fn [funstruct]
+       (filterv #(not= :gap (:terminal %)) funstruct)))))
 
 (defmethod apply-card
   :action-equality-1
