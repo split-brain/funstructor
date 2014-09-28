@@ -318,12 +318,17 @@ body > footer{
     overflow-y: hidden;
     white-space: nowrap;
 }
+.task p{
+    text-align: left;
+}
 .task{
-    right: 0;
-    bottom: 0px;
+    right: 10px;
+    bottom: 10px;
     height: 180px;
-    width: 300px;
-    background-color: rgba(100,0,255, 0.2);
+    width: 280px;
+    background-color: white;
+    border: 3px solid black;
+    padding: 0 15px;
 }
 .log{
     right: 0;

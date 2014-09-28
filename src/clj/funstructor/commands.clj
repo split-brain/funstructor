@@ -95,12 +95,13 @@
         [p1 p2 :as players] (f/get-game-players game)
         [c1 c2] (map #(gs/channel-for-player (gs/current-global-state) %) players)]
     (u/log "Sending game-update's for game " game-id)
-    (send-command {:type :game-update
-                   :data (make-update-data game p1)}
-                   c1)
-    (send-command {:type :game-update
-                    :data (make-update-data game p2)}
-                   c2)))
+    (let [update-log-01 {:type :game-update
+                         :data (make-update-data game p1)}]
+      (u/log "Player 1: " update-log-01)
+      (send-command update-log-01 c1)
+      (send-command {:type :game-update
+                     :data (make-update-data game p2)}
+                    c2))))
 
 
 ;; Functions for command handling
