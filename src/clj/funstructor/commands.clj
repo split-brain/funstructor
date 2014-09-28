@@ -115,6 +115,7 @@
     (u/log "Processing end-turn for game: " game-id)
 
     (gs/update-global-state gs/update-game game-id f/end-turn-for-player)
+    (send-game-updates game-id)
     (let [updated-game (gs/get-game (gs/current-global-state) game-id)]
       (when (f/turn-finished? updated-game)
         (gs/update-global-state gs/update-game game-id f/end-turn)
