@@ -377,27 +377,39 @@
      :else game
      )))
 
+;; TODO exception safe
 (defn use-card
   "Player Key:  UUID of player
      Card Pos:  index of card in :cards vector
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]
-  (-> game-map
-      (delete-all-messages)
-      ;; TODO validate such card is present
-      (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
-      ;; delete card from player
-      (delete-card player-key card-pos)
-      (log-message (str player-key " played " (get-card game-map player-key card-pos)))
-      
-      (check-for-win)
-      ;; log winner
-      (#(let [winner (:win %)]
-          (cond
-           (= winner :draw) (log-message % "Draw!")
-           winner (log-message % (str "Winner is " winner))
-           :else %)))
-      ))
+  (try
+    (-> game-map
+        (delete-all-messages)
+        ;; TODO validate such card is present
+        (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
+        ;; delete card from player
+        (delete-card player-key card-pos)
+        (log-message (str player-key " played " (get-card game-map player-key card-pos)))
+        
+        (check-for-win)
+        ;; log winner
+        (#(let [winner (:win %)]
+            (cond
+             (= winner :draw) (log-message % "Draw!")
+             winner (log-message % (str "Winner is " winner))
+             :else %)))
+        )
+    (catch Exception e
+      (do
+        (u/log
+         "\n"
+         "Critical Error:\n\n"
+         "Gamestate: " game-map "\n"
+         "Player:"     player-key "\n"
+         "Card"        (get-card game-map player-key card-pos) "\n"
+         "Args[]:"     args "\n")
+        game-map)))) ;; scary, but works
 
 
 

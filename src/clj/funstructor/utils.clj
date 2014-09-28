@@ -25,3 +25,7 @@
 (defn log [& args]
   (go
     (>! log-chan args)))
+
+(defn debug [e]
+  (println e)
+  e)

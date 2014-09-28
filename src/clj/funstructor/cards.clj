@@ -13,7 +13,8 @@
     :mutator-left-gap
     :mutator-right-gap
     :mutator-position-gap
-    :mutator-shot})
+    ;:mutator-shot
+    })
 
 (def cards
   {
