@@ -369,6 +369,22 @@
         (delete-all-cards player-key)
         (delete-all-cards opp))))
 
+(defmethod apply-card
+  :action-refresh
+  [game-map player-key card & args]
+  (let [current-cards (get-cards game-map player-key)]
+    (-> game-map
+        (delete-all-cards player-key)
+        (take-cards player-key (count current-cards)))))
+
+(defmethod apply-card
+  :action-greedy
+  [game-map player-key card & args]
+  (let [current-cards (get-cards game-map player-key)]
+    (-> game-map
+        (take-cards player-key (- card-limit-on-hand
+                                  ;; dec is for used greedy card
+                                  (dec (count current-cards)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Durations
