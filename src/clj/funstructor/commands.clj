@@ -38,7 +38,12 @@
             [channel1 channel2] (map #(gs/channel-for-player (gs/current-global-state) %) pending-pair)
             game-id (u/gen-uuid)]
         (gs/update-global-state (comp
-                                 #(gs/add-game % game-id (f/make-game uuid1 uuid2))
+                                 #(gs/add-game % game-id (-> (f/make-game uuid1 uuid2)
+                                                             (assoc-in [:player-uuid-map uuid1]
+                                                                       (gs/get-player-name (gs/current-global-state) uuid1))
+                                                             (assoc-in [:player-uuid-map uuid2]
+                                                                       (gs/get-player-name (gs/current-global-state) uuid2))
+                                                             ))
                                  #(apply gs/remove-from-pending % pending-pair)))
 
         (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
