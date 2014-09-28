@@ -220,7 +220,7 @@ var funs = funs || {};
         var name = data.data.name;
         if(name === 'Gap'){
             $('.field.your .terminal.space').addClass('active');
-        }else if(type === 'mutator'){
+        }else if(type === 'mutator' || type === 'action'){
             $('.field.your').addClass('active');
         }
         if(type === 'terminal'){
@@ -258,15 +258,14 @@ var funs = funs || {};
         });
     };
     funs.makeInput = function(data){
-        if(data.drop.terminal !== 'gap'){
-            return;
-        }
-        var $span = $('.field.your .gap.i_' + data.drop.i);
+//        if(data.drop.terminal !== 'gap'){
+//            return;
+//        }
+        var $span = $('.field.your .i_' + data.drop.i).not('.space');
         $span.html('<input type="text" value="">');
         var $input = $span.find('input').eq(0);
         $input.focus();
         $input.keypress(function(e) {
-            console.log(e);
             if(e.which === 13) {
                 var action = {
                     type : 'action',
@@ -294,9 +293,9 @@ var funs = funs || {};
         
         if(isPositionable(data)){
             action.data['funstruct-idx'] = data.drop.i;
-            if(data.drop.terminal !== 'gap' && data.drag.data.value === 'terminal'){
-                return;
-            }
+//            if(data.drop.terminal !== 'gap' && data.drag.data.value === 'terminal'){
+//                return;
+//            }
             if(data.drop.terminal !== 'space' && data.drag.data.name === 'Gap'){
                 return;
             }
