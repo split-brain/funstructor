@@ -16,7 +16,7 @@
   (update-in game [:messages] (fn [v] (vec []))))
 
 
-(defn- get-player-name-by-id [game player]
+(defn get-player-name-by-id [game player]
   (get-in game [:player-uuid-map player]))
 
 (defn- gap []
@@ -43,9 +43,7 @@
     :messages []
     :player-uuid-map {} ;; uuid -> name
     :win nil}
-   (log-message "Game started!")
-   (log-message (str p1 " vs " p2))
-   (#(log-message % (str (get-player-name-by-id % (:current-turn %)) " moves")))))
+))
 
 (defn player-win [game player & reason]
   (-> game
@@ -212,7 +210,7 @@
                 win3 (third-card-winner game-map)]
             (-> %
                 (take-card win3 c)
-                (log-message (str "Card " c " goes to " win3))
+                (log-message (str "Card " c " goes to " (get-player-name-by-id game-map win3)))
                 )))
         ;; increment turn num
         (update-in [:turn] inc)

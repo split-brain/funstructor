@@ -26,6 +26,10 @@ funs.Views.GameTable = React.createClass({
             funs.Views.Task          (null, funs.state.gameData.goal)
         ];
 
+        if(update.board.length > 0){
+            children.push(funs.Views.Board (null, update['board']));
+        }
+
         if(update.win !== null){
             children.push(funs.Views.WinLoose(update.win));
         }
@@ -322,7 +326,7 @@ funs.Views.Func = React.createClass({
         var R = React.DOM;
         var text;
         var terminal = this.props.terminal;
-        console.log('FUNC', this.props);
+
         var symDict = {
             'gap' : '_',
             'space' : R.img({src : '/img/e.png'}),
@@ -386,6 +390,25 @@ funs.Views.WinLoose = React.createClass({
         ];
         return R.div({
             className: 'win_loose ' + (youAreWinner ? 'you' : 'notTou')
+        }, children);
+    }
+});
+
+funs.Views.Board = React.createClass({
+    render: function(){
+        var R = React.DOM;
+        var board = this.props.children;
+        console.log('funs.Views.Board', board);
+        var children = board.map(function(b){
+            return R.a({
+                title: b.key.name + '. Turns left: ' + b['turns-left']
+            }, [
+                R.img({src: '/img/cards/' + b.key.img}),
+                R.span(null, b['turns-left'])
+            ]);
+        });
+        return R.div({
+            className: 'board'
         }, children);
     }
 });
