@@ -467,3 +467,44 @@ body > footer{
     line-height: 24px;
     box-sizing: border-box;
 }
+
+.win_loose.you > .result{
+    color: #3179DE;
+}
+.win_loose.you{
+    background-color: rgba(255,255,255,0.8);
+}
+.win_loose.notYou{
+    background-color: rgba(100,100,100,0.7);
+}
+.win_loose > .result{
+    color: white;
+    font-size: 64px;
+    font-weight: bolder;
+    line-height: 70px;
+    position: absolute;
+    top: 40%;
+    width: 100%;
+}
+.win_loose > .replay{
+    position: absolute;
+    top: 60%;
+    margin-left: -145px;
+}
+.win_loose > .replay > button{
+    font-size: 64px;
+    line-height: 60px;
+    padding: 20px 40px;
+}
+.win_loose{
+    position: absolute;
+    text-align: center;
+    box-sizing: border-box;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2014;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.7);
+}
