@@ -58,15 +58,30 @@
     (recur)))
 
 (defn make-player-update-data [game-state player-uuid]
-  (let [player-state (f/get-player-state game-state player-uuid)
-        opponent-uuid (f/get-opponent game-state player-uuid)]
-    (-> (update-in player-state
-                   [:cards]
-                   (fn [cards]
-                     (map cards/cards cards)))
-        (assoc :current-turn (:current-turn game-state))
-        (assoc :enemy-cards-num (count (:cards (f/get-player-state game-state opponent-uuid))))
-        (assoc :enemy-funstruct (:funstruct (f/get-player-state game-state opponent-uuid))))))
+  (letfn [(fix-board [board]
+            (map (fn [board-elem]
+                   (update-in board-elem [:key] cards/cards))
+                 board))]
+    (let [player-state (f/get-player-state game-state player-uuid)
+          opponent-uuid (f/get-opponent game-state player-uuid)
+          opponent-state (f/get-player-state game-state opponent-uuid)]
+      (-> player-state
+
+          ;; Fixing board's cards
+          (update-in
+           [:board]
+           fix-board)
+
+          ;; Fixing cards in hand
+          (update-in
+           [:cards]
+           (fn [cards]
+             (map cards/cards cards)))
+
+          (assoc :enemy-board (f/get-board game-state opponent-uuid))
+          (assoc :current-turn (:current-turn game-state))
+          (assoc :enemy-cards-num (count (f/get-cards game-state opponent-uuid)))
+          (assoc :enemy-funstruct (f/get-funstruct game-state opponent-uuid))))))
 
 (defn make-game-update-data [game]
   (select-keys game [:messages]))
@@ -146,7 +161,7 @@
         message (get-in command [:data :message])
         player-id (gs/player-for-channel (gs/current-global-state) channel)]
     (send-command {:type :chat-message-response
-                   :data {:player-id player-id
+                   :data {:player-id (gs/get-player-name (gs/current-global-state) player-id)
                           :message message}}
                   (map #(gs/channel-for-player (gs/current-global-state) %)
                        (f/get-game-players (gs/get-game (gs/current-global-state) game-id))))))
