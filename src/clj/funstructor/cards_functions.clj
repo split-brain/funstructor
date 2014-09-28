@@ -55,7 +55,13 @@
 (defn get-cards [game player]
   (get-in game [:players player :cards]))
 
+(defn get-funstruct [game player]
+  (get-in game [:players player :funstruct]))
+
 (defn get-board [game player]
+  (get-in game [:players player :board]))
+
+(defn get-goal [game player]
   (get-in game [:players player :board]))
 
 (defn- apply-to-cards
@@ -331,6 +337,16 @@
 ;;; API
 
 
+(defn- check-for-win
+  "Check if some player won game,
+   and sets gamemap key :winner [p1 | p2 | :draw]"
+  [game]
+  (let [[p1 p2] (get-players game)
+        f1 (get-funstruct game p1)
+        f2 (get-funstruct game p2 )]
+    
+    ))
+
 (defn use-card
   "Player Key:  UUID of player
      Card Pos:  index of card in :cards vector
@@ -342,6 +358,8 @@
       ;; delete card from player
       (delete-card player-key card-pos)
 
+      (check-for-win)
+      
       ))
 
 

@@ -54,6 +54,9 @@
     [{:name f1 :raw s1}
      {:name f2 :raw s2}]))
 
+(defn completed-funstruct? [goal]
+  )
+
 (defn print-terminal-count []
   (doseq [k (keys funstructs)]
     (let [raw (get funstructs k)
