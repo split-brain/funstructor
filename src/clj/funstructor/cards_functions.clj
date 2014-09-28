@@ -338,7 +338,7 @@
   [game player-key card & args]
   ((apply-to-funstruct game player-key)
    (fn [funstruct]
-     (remove #(= :gap (:terminal %)) funstruct))))
+     (filterv #(not= :gap (:terminal %)) funstruct))))
 
 (defmethod apply-card
   :action-equality-1

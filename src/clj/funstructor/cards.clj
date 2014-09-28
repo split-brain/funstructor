@@ -14,6 +14,7 @@
     :mutator-right-gap
     :mutator-position-gap
     ;:mutator-shot
+    :mutator-cleanup
 
     :action-thief-1
     :action-discard-1
@@ -23,7 +24,7 @@
 
     :duration-luck-1
     :duration-luck-2
-    
+
     })
 
 (def cards
@@ -132,6 +133,15 @@
     :type :mutator
     :weight 50
     :img "mutator_shot.svg"}
+
+   :mutator-cleanup
+   {:name "Cleanup"
+    :description
+    "remove gaps from the opponent's funstruct"
+    :target :opponent
+    :type :mutator
+    :weight 50
+    :img "mutator_cleanup.svg"}
 
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
