@@ -2,7 +2,14 @@
 
 
 (def funstructs
-  {:abs
+  {
+   :test-sum
+   "(= (+ 2 2) 5)"
+
+   :identity
+   "(defn [x] x)"
+
+   :abs
    "(defn abs [x] (if (pos? x) x (- x)))"
 
    :even?
@@ -19,7 +26,7 @@
 
    })
 
-(def id-regex "[a-zA-Z\\?\\!\\+\\-\\*\\/][a-zA-Z\\?\\!\\+\\-\\*\\/0-9]*")
+(def id-regex "[a-zA-Z\\?\\!\\+\\-\\*\\/\\=][a-zA-Z\\?\\!\\+\\-\\*\\/0-9\\=]*")
 
 (defn id? [s]
   (re-matches (re-pattern id-regex) s))
