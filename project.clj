@@ -30,7 +30,7 @@
                          :output-to "resources/public/js/app.js"
                          :source-map "resources/public/js/app.js.map"
                          :output-dir "resources/public/js"
-                         ;:optimizations :whitespace
+                         :optimizations :whitespace
                          :preety-print true
                          }}
 
