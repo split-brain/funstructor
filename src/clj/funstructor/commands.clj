@@ -72,8 +72,7 @@
         [c1 c2] (map #(gs/channel-for-player (gs/current-global-state) %) players)]
     (u/log "Sending game-update's for game " game-id)
     (send-command {:type :game-update
-                   :data (make-update-data game p1)
-                    }
+                   :data (make-update-data game p1)}
                    c1)
     (send-command {:type :game-update
                     :data (make-update-data game p2)}

@@ -19,6 +19,7 @@ Description is written using following pattern:
   - *game-id* - uuid of game that user belongs to
   - *card-idx* - index of card that was used
   - *target* - "self", "opponent" or "both": indicates on whom card was used
+  - *value* - optional field that can carry id or num
   - *funstruct-idx* (optional) - index of funstruct item on what card was used
 - **"chat-message"**
   - *game-id* - uuid of game that user belongs to
