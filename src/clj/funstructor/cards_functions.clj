@@ -7,6 +7,13 @@
 (def start-cards-num 6)
 (def cards-per-turn 2)
 
+(defn log-message [game message]
+  (update-in game [:messages] (fn [v] (conj v message))))
+
+(defn- delete-all-messages
+  [game]
+  (update-in game [:messages] (fn [v] (vec []))))
+
 (defn- gap []
   {:terminal :gap
    :value nil})
@@ -20,13 +27,17 @@
    :board []})
 
 (defn make-game [p1 p2]
-  {:players
-   (let [[f1 f2] (base/get-two-random-funstructs)]
-     {p1 (make-player-state f1 p2)
-      p2 (make-player-state f2 p1)})
-   :current-turn p1
-   :turn-ends 0
-   :turn 1})
+  (->
+   {:players
+    (let [[f1 f2] (base/get-two-random-funstructs)]
+      {p1 (make-player-state f1 p2)
+       p2 (make-player-state f2 p1)})
+    :current-turn p1
+    :turn-ends 0
+    :turn 1
+    :messages []}
+   (log-message "Game started!")
+   (log-message (str p1 " vs " p2))))
 
 (defn get-game-players [game]
   (keys (:players game)))
@@ -133,10 +144,11 @@
 
 (defn init-game [game-map]
   (let [players (get-players game-map)]
-    (reduce (fn [m player]
-              (take-cards m player start-cards-num))
-            game-map
-            players)))
+    (-> (reduce (fn [m player]
+                 (take-cards m player start-cards-num))
+               game-map
+               players)
+        (log-message (str "Turn: " (:turn game-map))))))
 
 (defn- get-luck-cards-chances [game player]
   (let [chances {:duration-luck-1 75
@@ -165,20 +177,26 @@
          (if (<= p2max r) p2 p1))))))
 
 
-
 (defn end-turn [game-map]
 ; allow only if two player finished their turn :turn-ends-2
   (let [[p1 p2] (get-players game-map)]
     (-> game-map
+        (delete-all-messages)
         (assoc-in [:turn-ends] 0)
         (take-cards p1 cards-per-turn)
         (take-cards p2 cards-per-turn)
         ;; decrement durations
         (decrement-durations)
         ;; random card
-        (take-card (third-card-winner game-map) (c/next-card))
+        (#(let [c (c/next-card)
+                win3 (third-card-winner game-map)]
+            (-> %
+                (take-card win3 c)
+                (log-message (str "Card " c " goes to " win3))
+                )))
         ;; increment turn num
         (update-in [:turn] inc)
+        (#(log-message % (str "Turn: " (:turn %))))
         )))
 
 
@@ -366,9 +384,15 @@
       (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
       ;; delete card from player
       (delete-card player-key card-pos)
-
-      (check-for-win)
+      ;; (log-message (str player-key " played " (get-card game-map player-key card-pos)))
       
+      (check-for-win)
+      ;; log winner
+      ;; (#(let [winner (:win %)]
+      ;;     (cond
+      ;;      (= winner :draw) (log-message % "Draw!")
+      ;;      winner (log-message % (str "Winner is " winner))
+      ;;      :else %)))
       ))
 
 
