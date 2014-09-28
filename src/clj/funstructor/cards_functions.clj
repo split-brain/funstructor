@@ -240,10 +240,10 @@
   :terminal-param
   [game-map player-key card & args]
   (let [[pos param & _] args]
-    (when (and (= (:terminal-id) card)
+    (when (and (= :terminal-id card)
                (not (base/id? param)))
       (throw (IllegalArgumentException. "Not valid ID")))
-    (when (and (= (:terminal-num) card)
+    (when (and (= :terminal-num card)
                (not (base/num? param)))
       (throw (IllegalArgumentException. "Not valid NUM")))
     ((apply-to-funstruct game-map player-key)
@@ -410,6 +410,7 @@
     (catch Exception e
       (do
         (u/log
+         (.getMessage e)
          "\n"
          "Critical Error:\n\n"
          "Gamestate: " game-map "\n"
