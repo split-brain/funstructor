@@ -371,7 +371,7 @@ funs.Views.WinLoose = React.createClass({
         if(youAreWinner){
             text = 'You win!';
             funs.audio.victory();
-        }else if(win === funs.state.enemy){
+        }else if(win === funs.state.gameData.opponent){
             funs.audio.defeat();
             text = funs.state.enemy + ' win!';
         }
