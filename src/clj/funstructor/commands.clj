@@ -191,9 +191,10 @@
      opponent
      "Other player has disconnected")
 
+    (u/log "Sending update to his opponent: " opponent)
     (send-command
      {:type :game-update
-      :data (make-update-data game opponent)}
+      :data (make-update-data (gs/get-game (gs/current-global-state) game-id) opponent)}
      (gs/channel-for-player (gs/current-global-state) opponent))))
 
 (defmethod handle-command :default [command channel]
