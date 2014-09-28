@@ -26,7 +26,11 @@ funs.Views.GameTable = React.createClass({
             funs.Views.Task          (null, funs.state.gameData.goal)
         ];
 
-        if(!funs.state.myTurn){
+        if(update.win !== null){
+            children.push(funs.Views.WinLoose(update.win));
+        }
+
+        if(!funs.state.myTurn && update.win === null){
             children.push(funs.Views.OpponentTurn());
         }
         setTimeout(function(){
@@ -328,4 +332,41 @@ funs.Views.Func = React.createClass({
     }
 });
 
+funs.Views.WinLoose = React.createClass({
+    click: function(){
+        location.reload();
+    },
+    render: function() {
+        var R = React.DOM;
+        var win = this.props;
+        var youAreWinner = win === funs.state.name;
+        console.log('funs.Views.WinLoose', this.props);
+        
+        var button = R.div({
+                className: 'button replay'
+            },R.button({
+                onClick: this.click
+            }, 'Replay'));
+        
+        var text = 'Draw!';
+        
+        if(youAreWinner){
+            text = 'You win!';
+        }else if(win === funs.state.enemy){
+            text = funs.state.enemy + ' win!';
+        }
+        
+        var message = R.div({
+                className: 'result'
+            }, text);
+        
+        var children = [
+            message,
+            button
+        ];
+        return R.div({
+            className: 'win_loose ' + (youAreWinner ? 'you' : 'notTou')
+        }, children);
+    }
+});
 
