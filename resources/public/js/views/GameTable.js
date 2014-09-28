@@ -207,10 +207,11 @@ funs.Views.LogStream = React.createClass({
         var R = React.DOM;
         var data = this.props.children;
         var logs = this.props.logs;
-        console.log('LogStream', this.props);
+
         var children = logs.map(function(l){
             var message = R.div({
-                className: funs.state.name === l['player-id'] ? 'message self' : 'message'
+                className: (funs.state.name === l['player-id'] ? 'message self' : 'message')
+                    + (l['player-id'] === 'Info:' ? ' service' : '')
             }, [
                 R.h4(null,l['player-id']),
                 R.p(null,l['message'])
@@ -346,7 +347,7 @@ funs.Views.WinLoose = React.createClass({
     render: function() {
         var R = React.DOM;
         var win = this.props;
-        var youAreWinner = win === funs.state.name;
+        var youAreWinner = win === funs.state.uuid;
         console.log('funs.Views.WinLoose', this.props);
         
         var button = R.div({

@@ -107,6 +107,20 @@ var funs = funs || {};
             funs.stopLoading();
             funs.state.gameData = data;
             funs.state.myTurn = funs.state['uuid'] === funs.state.gameData['current-turn'];
+            
+            funs.state.logs = funs.state.logs || [];
+            
+            data.messages.forEach(function(m){
+                funs.state.logs.push({
+                    'player-id' : 'Info:',
+                    'message' : m
+                });
+            });
+            setTimeout(function(){
+                var $msg = $('.logStream').eq(0);
+                $msg.scrollTop($msg.prop("scrollHeight"));
+            },100);
+            
             funs.switch(funs.Views.GameTable, data);
         },
         'chat-message-response': function(data){
@@ -173,6 +187,7 @@ var funs = funs || {};
     //        requested = true;
             $('head > title').eq(0).html('Funstructor : ' + name);
             funs.state.name = name;
+            $('#barometer_tab').hide();
             funs.websocket.send({
                 type: "game-request",
                 data: {

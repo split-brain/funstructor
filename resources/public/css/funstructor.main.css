@@ -428,6 +428,15 @@ body > footer{
 .logStream .message.self{
     background-color: #efefef;
 }
+.logStream .message.service{
+    background-color: #ffffef;
+}
+.logStream .message.service h4{
+    color: #777;
+}
+.logStream .message.service p{
+    color: #777;
+}
 .logStream .message h4{
     padding: 0;
     margin: 0;
