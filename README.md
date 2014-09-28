@@ -25,19 +25,19 @@ All cards are divided into categories.
 
 ### Terminals
 
-![](https://github.com/clojurecup2014/funstructor/blob/master/resources/public/img/cards/terminal_left_paren.svg)
+![](https://github.com/clojurecup2014/funstructor/blob/master/doc/img/terminal_left_paren.png)
 
 Most important cards, that helps you to build funstruct.
 
 ### Mutators
 
-![](https://github.com/clojurecup2014/funstructor/blob/master/resources/public/img/cards/mutator_left_gap.svg)
+![](https://github.com/clojurecup2014/funstructor/blob/master/doc/img/mutator_left_gap.png)
 
 These cards modify your or opponent's funstruct.
 
 ### Actions
 
-![](https://github.com/clojurecup2014/funstructor/blob/master/resources/public/img/cards/action_discard_1.svg)
+![](https://github.com/clojurecup2014/funstructor/blob/master/doc/img/action_discard_1.png)
 
 Plain actions.
 
