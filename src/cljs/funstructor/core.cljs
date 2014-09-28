@@ -24,5 +24,3 @@
 
 (defn ^:export run []
   (r/render-component [v/game start-new-game!] (v/get-element "app")))
-
-;(r/render-component [v/game start-new-game!] (v/get-element "app"))

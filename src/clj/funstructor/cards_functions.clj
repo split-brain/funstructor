@@ -37,7 +37,8 @@
     :turn 1
     :messages []}
    (log-message "Game started!")
-   (log-message (str p1 " vs " p2))))
+   (log-message (str p1 " vs " p2))
+   (#(log-message % (str (:current-turn %)" moves")))))
 
 (defn get-game-players [game]
   (keys (:players game)))
@@ -123,7 +124,9 @@
 
 (defn end-turn-for-player [game]
   (-> game
+      (delete-all-messages)
       (assoc :current-turn (get-opponent game (:current-turn game)))
+      (#(log-message % (str (:current-turn %)" moves")))
       (update-in [:turn-ends] inc)))
 
 (defn- decrement-duration-for-player [game player]
@@ -380,19 +383,20 @@
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]
   (-> game-map
+      (delete-all-messages)
       ;; TODO validate such card is present
       (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
       ;; delete card from player
       (delete-card player-key card-pos)
-      ;; (log-message (str player-key " played " (get-card game-map player-key card-pos)))
+      (log-message (str player-key " played " (get-card game-map player-key card-pos)))
       
       (check-for-win)
       ;; log winner
-      ;; (#(let [winner (:win %)]
-      ;;     (cond
-      ;;      (= winner :draw) (log-message % "Draw!")
-      ;;      winner (log-message % (str "Winner is " winner))
-      ;;      :else %)))
+      (#(let [winner (:win %)]
+          (cond
+           (= winner :draw) (log-message % "Draw!")
+           winner (log-message % (str "Winner is " winner))
+           :else %)))
       ))
 
 
