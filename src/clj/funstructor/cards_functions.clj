@@ -62,7 +62,7 @@
   (get-in game [:players player :board]))
 
 (defn get-goal [game player]
-  (get-in game [:players player :board]))
+  (get-in game [:players player :goal]))
 
 (defn- apply-to-cards
   "Get access to cards"
@@ -343,9 +343,18 @@
   [game]
   (let [[p1 p2] (get-players game)
         f1 (get-funstruct game p1)
-        f2 (get-funstruct game p2 )]
-    
-    ))
+        p1-goal (get-goal game p1)
+        f2 (get-funstruct game p2)
+        p2-goal (get-goal game p2)
+        p1-done (base/completed-funstruct? (:raw p1-goal) f1)
+        p2-done (base/completed-funstruct? (:raw p2-goal) f2)]
+    (cond
+     (= false p1-done p2-done) game
+     (= true p1-done p2-done) (assoc game :win :draw)
+     p1-done (assoc game :win p1)
+     p2-done (assoc game :win p2)
+     :else game
+     )))
 
 (defn use-card
   "Player Key:  UUID of player

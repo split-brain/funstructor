@@ -54,8 +54,14 @@
     [{:name f1 :raw s1}
      {:name f2 :raw s2}]))
 
-(defn completed-funstruct? [goal]
-  )
+(defn completed-funstruct?
+  [raw current-funstruct]
+  (let [need-funstruct (s->funstruct raw)]
+    (->> current-funstruct
+         (map (fn [e]
+                (if-not (:value e) (dissoc e :value) e)))
+         (remove (fn [e] (= :gap (:terminal e))))
+         (= need-funstruct))))
 
 (defn print-terminal-count []
   (doseq [k (keys funstructs)]
