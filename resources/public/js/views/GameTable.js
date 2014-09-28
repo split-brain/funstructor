@@ -40,6 +40,12 @@ funs.Views.GameTable = React.createClass({
                 id: 'game'
             }, children);
         
+        if(!funs.state.started){
+            funs.audio.start_game();
+        }
+        
+        funs.state.started = true;
+        
         return game;
     }
 });
@@ -272,6 +278,7 @@ funs.Views.EndTurn = React.createClass({
             return;
         }
         funs.endTurn();
+        funs.audio.end_turn();
     },
     render: function() {
         var R = React.DOM;
@@ -360,7 +367,9 @@ funs.Views.WinLoose = React.createClass({
         
         if(youAreWinner){
             text = 'You win!';
+            funs.audio.victory();
         }else if(win === funs.state.enemy){
+            funs.audio.defeat();
             text = funs.state.enemy + ' win!';
         }
         

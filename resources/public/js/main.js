@@ -127,6 +127,7 @@ var funs = funs || {};
             funs.state.logs = funs.state.logs || [];
             funs.state.logs.push(data);
             funs.switch(funs.Views.GameTable, funs.state.gameData);
+            funs.audio.chat_message();
             setTimeout(function(){
                 var $msg = $('.logStream').eq(0);
                 $msg.scrollTop($msg.prop("scrollHeight"));
@@ -173,7 +174,7 @@ var funs = funs || {};
     
     // MOCK
 //    funs.switch(funs.Views.GameTable, JSON.parse('{"type":"game-update","data":{"enemy-funstruct":[{"terminal":"gap","value":null}],"enemy-cards-num":6,"current-turn":"7902e56e-60aa-49f8-b589-471ae6d0b866","ready":true,"opponent":"7902e56e-60aa-49f8-b589-471ae6d0b866","cards":[{"description":"fill the gap on your funstruct with left square","name":"LEFT SQUARE","value":"left-square","type":"terminal","weight":100,"target":"self","img":"terminal_left_square.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with left paren","name":"Left Paren","value":"left-paren","type":"terminal","weight":100,"target":"self","img":"terminal_left_paren.svg"},{"description":"fill the gap on your funstruct with right square","name":"RIGHT SQUARE","value":"right-square","type":"terminal","weight":100,"target":"self","img":"terminal_right_square.svg"},{"description":"fill the gap on your funstruct with integer number","name":"Number","value":"num","type":"terminal","weight":50,"target":"self","img":"terminal_num.svg"},{"description":"fill the gap on your funstruct with identifier, according to clojure regexp","name":"ID","value":"id","type":"terminal","weight":100,"target":"self","img":"terminal_id.svg"}],"funstruct":[{"terminal":"gap","value":null}]}}').data);
-    
+    funs.state.started = false;
     $(function(){
         var $form = $('#startForm');
         var $input = $form.find('.input > input').eq(0);
@@ -195,6 +196,24 @@ var funs = funs || {};
                 }
             });
         });
+        
+        var $sound = $('#sound');
+        funs.sound = localStorage.funs_sound === 'false' ? false : true;
+        if(!funs.sound){
+            $sound.addClass('disabled');
+        }
+        
+        $sound.click(function(){
+            if(funs.sound){
+                funs.sound = false;
+                $sound.addClass('disabled');
+            }else{
+                funs.sound = true;
+                $sound.removeClass('disabled');
+            }
+            localStorage.funs_sound = funs.sound;
+        });
+        
     });
     
     function drawCards(){
@@ -291,6 +310,8 @@ var funs = funs || {};
         var $input = $span.find('input').eq(0);
         $input.focus();
         $input.keypress(function(e) {
+            var length = ($input.val() + '').length;
+            $input.width((length + 1) * 15);
             if(e.which === 13) {
                 var action = {
                     type : 'action',
@@ -350,6 +371,51 @@ var funs = funs || {};
         }
     };
 })(funs);
+
+// AUDIO MENEGER
+(function(funs){
+    funs.audio = {
+        _card_play: new Audio('/audio/card_play.wav'),
+        _chat_message: new Audio('/audio/chat_message.wav'),
+        _defeat: new Audio('/audio/defeat.wav'),
+        _end_turn: new Audio('/audio/end_turn.wav'),
+        _start_game: new Audio('/audio/start_game.wav'),
+        _third_card_winner: new Audio('/audio/third_card_winner.wav'),
+        _victory: new Audio('/audio/victory.wav'),
+        
+        _play: function(name){
+            if(!funs.sound){
+                return;
+            }
+            
+            funs.audio[name].load();
+            funs.audio[name].play();
+        },
+        
+        card_play: function(){
+            funs.audio._play('_card_play');
+        },
+        chat_message: function(){
+            funs.audio._play('_chat_message');
+        },
+        defeat: function(){
+            funs.audio._play('_defeat');
+        },
+        end_turn: function(){
+            funs.audio._play('_end_turn');
+        },
+        start_game: function(){
+            funs.audio._play('_start_game');
+        },
+        third_card_winner: function(){
+            funs.audio._play('_third_card_winner');
+        },
+        victory: function(){
+            funs.audio._play('_victory');
+        }
+    };
+})(funs);
+
 
 (function(funs){
 })(funs);
