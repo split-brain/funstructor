@@ -41,6 +41,11 @@
    (log-message (str p1 " vs " p2))
    (#(log-message % (str (:current-turn %)" moves")))))
 
+(defn player-win [game player & reason]
+  (-> game
+      (assoc :win player)
+      (log-message (or reason ""))))
+
 (defn get-game-players [game]
   (keys (:players game)))
 

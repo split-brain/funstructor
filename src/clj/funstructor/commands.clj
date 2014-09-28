@@ -27,6 +27,9 @@
 (defn send-command-by-channels [command & channels]
   (send-commands :commands [command] :channels channels))
 
+(defn disconnected-command []
+  {:type "disconnected"})
+
 (defn pending-checker []
   (go-loop []
     (<! (timeout 3000))
@@ -53,8 +56,7 @@
                                 :enemy (gs/get-player-name (gs/current-global-state) uuid1)
                                 :goal-name (:name p2-goal)
                                 :goal-string (:raw p2-goal)}}
-                        channel2))
-        ))
+                        channel2))))
     (recur)))
 
 (defn make-player-update-data [game-state player-uuid]
@@ -165,6 +167,24 @@
                                             :message message}}
            (map #(gs/channel-for-player (gs/current-global-state) %)
                 (f/get-game-players (gs/get-game (gs/current-global-state) game-id))))))
+
+(defmethod handle-command "disconnected" [command channel]
+  (let [player (gs/player-for-channel (gs/current-global-state) channel)
+        game-id (gs/get-player-game (gs/current-global-state) player)
+        game (gs/get-game (gs/current-global-state) game-id)
+        opponent (f/get-opponent game player)]
+    (u/log "Player " player " has disconnected")
+    (gs/update-global-state
+     gs/update-game
+     game-id
+     f/player-win
+     opponent
+     "Other player has disconnected")
+
+    (send-command
+     {:type :game-update
+      :data (make-update-data game opponent)}
+     (gs/channel-for-player (gs/current-global-state) opponent))))
 
 (defmethod handle-command :default [command channel]
   (u/printerr "Unrecognized command: " command))

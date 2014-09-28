@@ -6,7 +6,7 @@
             [ring.middleware.reload :as reload]
             [ring.middleware.stacktrace :as st]
             [chord.http-kit :refer [wrap-websocket-handler]]
-            [clojure.core.async :refer [<! >! put! close! go-loop chan]]
+            [clojure.core.async :as async]
             [compojure.core :refer [defroutes GET]]
 
             [funstructor.commands :as commands]
@@ -15,22 +15,26 @@
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (u/log "Opened connection from" (:remote-addr req))
-  (go-loop []
-    (when-let [{:keys [message error] :as msg} (<! ws-channel)]
+  (async/go-loop []
+    (let [{:keys [message error] :as msg} (async/<! ws-channel)]
       (u/log "Received message" msg)
-      ;; (println "Type: " (class message))
-      (if error
-        (u/printerr "Received error: " msg)
-        (commands/handle-command (commands/decode-command message) ws-channel))
-      (recur))))
+
+
+      (if (nil? msg)
+        (commands/handle-command (commands/disconnected-command) ws-channel)
+        (do
+          (if error
+            (u/printerr "Received error: " msg)
+            (commands/handle-command (commands/decode-command message) ws-channel))
+          (recur))))))
 
 (defroutes app-routes
   (GET "/cljs" [] (redirect "index-cljs.html"))
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/ws" [] (-> ws-handler
                     (wrap-websocket-handler {:format :str
-                                             :read-ch (chan nil nil #(.printStackTrace %))
-                                             :write-ch (chan nil nil #(.printStackTrace %))})))
+                                             :read-ch (async/chan nil nil #(.printStackTrace %))
+                                             :write-ch (async/chan nil nil #(.printStackTrace %))})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
