@@ -184,18 +184,19 @@
         game (gs/get-game (gs/current-global-state) game-id)
         opponent (f/get-opponent game player)]
     (u/log "Player " player " has disconnected")
-    (gs/update-global-state
-     gs/update-game
-     game-id
-     f/player-win
-     opponent
-     "Other player has disconnected")
+    (when opponent
+      (gs/update-global-state
+       gs/update-game
+       game-id
+       f/player-win
+       opponent
+       "Other player has disconnected")
 
-    (u/log "Sending update to his opponent: " opponent)
-    (send-command
-     {:type :game-update
-      :data (make-update-data (gs/get-game (gs/current-global-state) game-id) opponent)}
-     (gs/channel-for-player (gs/current-global-state) opponent))))
+      (u/log "Sending update to his opponent: " opponent)
+      (send-command
+       {:type :game-update
+        :data (make-update-data (gs/get-game (gs/current-global-state) game-id) opponent)}
+       (gs/channel-for-player (gs/current-global-state) opponent)))))
 
 (defmethod handle-command :default [command channel]
   (u/printerr "Unrecognized command: " command))
