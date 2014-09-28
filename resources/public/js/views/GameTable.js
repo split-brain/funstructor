@@ -23,7 +23,7 @@ funs.Views.GameTable = React.createClass({
             funs.Views.YourHand      (null, update.cards),
             funs.Views.OpponentHand  (null, update['enemy-cards-num']),
             funs.Views.Log           (null, update['current-turn']),
-            funs.Views.Task          (null, funs.state['task'])
+            funs.Views.Task          (null, funs.state.gameData.goal)
         ];
 
         if(!funs.state.myTurn){
@@ -188,7 +188,8 @@ funs.Views.Task = React.createClass({
         var R = React.DOM;
 
         var children = [
-            R.p(null, this.props.children),
+            R.h3(null, this.props.children.name),
+            R.p(null, this.props.children.raw),
             funs.Views.EndTurn()
         ];
 
@@ -244,7 +245,7 @@ funs.Views.Func = React.createClass({
         var R = React.DOM;
         var text;
         var terminal = this.props.terminal;
-//        console.log('FUNC', this.props);
+        console.log('FUNC', this.props);
         var symDict = {
             'gap' : '_',
             'space' : R.img({src : '/img/e.png'}),
@@ -252,6 +253,7 @@ funs.Views.Func = React.createClass({
             'right-paren' : ')',
             'left-square' : '[',
             'right-square' : ']',
+            'id' : this.props.value,
             'num' : this.props.value
         };
         
