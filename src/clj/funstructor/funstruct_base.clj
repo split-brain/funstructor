@@ -7,7 +7,10 @@
    "(= (+ 2 2) 5)"
 
    :identity
-   "(defn [x] x)"
+   "(defn id [x] x)"
+
+   :multiply-by-x
+   "(defn mult [a b] (* a b))"
 
    :abs
    "(defn abs [x] (if (pos? x) x (- x)))"
