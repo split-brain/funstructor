@@ -185,11 +185,11 @@
           p2max (apply max 0 p2-luck-cards)]
       (cond
        (= p1max p2max) (rand-nth [p1 p2])
-       
+
        (> p1max p2max)
        (let [r (rand-int 100)]
          (if (<= r p1max) p1 p2))
-       
+
        :else
        (let [r (rand-int 100)]
          (if (<= p2max r) p2 p1))))))
@@ -221,13 +221,13 @@
 
 ;; Functions to operate on game state
 
-(def terminal-hierarchy 
+(def terminal-hierarchy
   (-> (make-hierarchy)
       (derive :terminal-left-paren :terminal)
       (derive :terminal-right-paren :terminal)
       (derive :terminal-left-square :terminal)
       (derive :terminal-right-square :terminal)
-      
+
       (derive :terminal-id :terminal-param)
       (derive :terminal-num :terminal-param)
 
@@ -376,6 +376,12 @@
        (conj v {:key card
                 :turns-left (:turns-left c)})))))
 
+(defmethod apply-card
+  :default
+  [game-map player-key card & args]
+  ((u/log "Unsupported card played " card)
+   game-map))
+
 ;;; API
 
 
@@ -412,7 +418,7 @@
         ;; delete card from player
         (delete-card player-key card-pos)
         (log-message (str (get-player-name-by-id game-map player-key) " played " (get-card game-map player-key card-pos)))
-        
+
         (check-for-win)
         ;; log winner
         (#(let [winner (:win %)]
