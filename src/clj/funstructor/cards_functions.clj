@@ -411,40 +411,54 @@
      :else game
      )))
 
+(defn- duration-duplicate-active? [board]
+  (:duration-duplicate (into #{} (map :key board))))
+
+(defn- process-duration-duplicate [game player card]
+  (let [opp (get-opponent game player)
+        board (get-board game opp)]
+    (if (duration-duplicate-active? board)
+      (take-card game opp card)
+      game)))
+
 ;; TODO exception safe
 (defn use-card
   "Player Key:  UUID of player
      Card Pos:  index of card in :cards vector
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]
-  (try
-    (-> game-map
-        (delete-all-messages)
-        ;; TODO validate such card is present
-        (#(apply apply-card % player-key (get-card game-map player-key card-pos) args))
-        ;; delete card from player
-        (delete-card player-key card-pos)
-        (log-message (str (get-player-name-by-id game-map player-key) " played " (get-card game-map player-key card-pos)))
+  (let [card (get-card game-map player-key card-pos)]
+    (try
+      (-> game-map
+          (delete-all-messages)
+          ;; TODO validate such card is present
+          (#(apply apply-card % player-key card args))
+          ;; delete card from player
+          (delete-card player-key card-pos)
+          (log-message (str (get-player-name-by-id game-map player-key) " played " card))
 
-        (check-for-win)
-        ;; log winner
-        (#(let [winner (:win %)]
-            (cond
-             (= winner :draw) (log-message % "Draw!")
-             winner (log-message % (str "Winner is " winner))
-             :else %)))
-        )
-    (catch Exception e
-      (do
-        (u/log
-         (.getMessage e)
-         "\n"
-         "Critical Error:\n\n"
-         "Gamestate: " game-map "\n"
-         "Player:"     player-key "\n"
-         "Card"        (get-card game-map player-key card-pos) "\n"
-         "Args[]:"     args "\n")
-        game-map)))) ;; scary, but works
+          ;; duration effects
+          (process-duration-duplicate player-key card)
+          
+          (check-for-win)
+          ;; log winner
+          (#(let [winner (:win %)]
+              (cond
+               (= winner :draw) (log-message % "Draw!")
+               winner (log-message % (str "Winner is " winner))
+               :else %)))
+          )
+      (catch Exception e
+        (do
+          (u/log
+           (.getMessage e)
+           "\n"
+           "Critical Error:\n\n"
+           "Gamestate: " game-map "\n"
+           "Player:"     player-key "\n"
+           "Card"        (get-card game-map player-key card-pos) "\n"
+           "Args[]:"     args "\n")
+          game-map))))) ;; scary, but works
 
 
 
