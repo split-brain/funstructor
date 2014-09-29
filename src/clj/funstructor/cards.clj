@@ -14,16 +14,19 @@
     :mutator-right-gap
     :mutator-position-gap
     ;:mutator-shot
+    :mutator-cleanup
 
     :action-thief-1
     :action-discard-1
     :action-equality-1
     :action-equality-2
     :action-equality-3
+    :action-refresh
+    :action-greedy
 
     :duration-luck-1
     :duration-luck-2
-    
+
     })
 
 (def cards
@@ -133,6 +136,15 @@
     :weight 50
     :img "mutator_shot.svg"}
 
+   :mutator-cleanup
+   {:name "Cleanup"
+    :description
+    "remove gaps from the opponent's funstruct"
+    :target :opponent
+    :type :mutator
+    :weight 50
+    :img "mutator_cleanup.svg"}
+
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Actions
@@ -184,6 +196,23 @@ and take 5 from deck"
     :weight 10
     :img "action_equality_3.svg"}
 
+   :action-refresh
+   {:name "Refresh"
+    :description
+    "discard all your cards and take the same amount from deck"
+    :target :self
+    :type :action
+    :weight 20
+    :img "action_refresh.svg"}
+
+   :action-greedy
+   {:name "Greedy"
+    :description
+    "get cards upto your maximum"
+    :target :self
+    :type :action
+    :weight 20
+    :img "action_greedy.svg"}
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Duration
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
