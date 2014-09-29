@@ -1,7 +1,6 @@
 (ns funstructor.commands
   (:require [cheshire.core :refer [generate-string parse-string]]
             [clojure.core.async :refer [>! <! go go-loop timeout]]
-
             [funstructor.game-state :as gs]
             [funstructor.cards :as cards]
             [funstructor.cards-functions :as f]

@@ -102,7 +102,6 @@
   [game-map player-key]
   (partial update-in game-map [:players player-key :board]))
 
-
 ;; Cards Accessor
 
 (defn- take-card
@@ -122,6 +121,13 @@
    game-map
    (repeatedly num c/next-card)))
 
+(defn take-same-cards [game-map player-key card num]
+  (reduce
+   (fn [m e] (take-card m player-key e))
+   game-map
+   (repeat num card)))
+
+
 (defn- delete-card
   "Delete card from player state"
   [game-map player-key card-pos]
@@ -136,6 +142,26 @@
 
 (defn- get-card [game-map player-key pos]
   (get-in game-map [:players player-key :cards pos]))
+
+
+(defn- duration-active? [board key]
+  ((into #{} (map :key board)) key))
+
+
+(defn- process-duration-duplicate [game player card]
+  (let [opp (get-opponent game player)
+        board (get-board game opp)]
+    (->> board
+         (filterv (fn [{k :key}] (= k :duration-duplicate)))
+         (count)
+         (take-same-cards game opp card))))
+
+(defn- process-duration-good-times-for-player [game player]
+  (->> (get-board game player)
+       (filterv (fn [{k :key}] (= k :duration-good-times)))
+       (count)
+       (take-cards game player)))
+
 
 (defn end-turn-for-player [game]
   (-> game
@@ -194,7 +220,6 @@
        (let [r (rand-int 100)]
          (if (<= p2max r) p2 p1))))))
 
-
 (defn end-turn [game-map]
 ; allow only if two player finished their turn :turn-ends-2
   (let [[p1 p2] (get-players game-map)]
@@ -203,8 +228,10 @@
         (assoc-in [:turn-ends] 0)
         (take-cards p1 cards-per-turn)
         (take-cards p2 cards-per-turn)
-        ;; decrement durations
-        (decrement-durations)
+
+        (process-duration-good-times-for-player p1)
+        (process-duration-good-times-for-player p2)
+        
         ;; random card
         (#(let [c (c/next-card)
                 win3 (third-card-winner game-map)]
@@ -212,6 +239,10 @@
                 (take-card win3 c)
                 (log-message (str "Card " c " goes to " (get-player-name-by-id game-map win3)))
                 )))
+
+        ;; decrement durations
+        (decrement-durations)
+        
         ;; increment turn num
         (update-in [:turn] inc)
         (#(log-message % (str "Turn: " (:turn %))))
@@ -233,6 +264,8 @@
 
       (derive :duration-luck-1 :duration)
       (derive :duration-luck-2 :duration)
+      (derive :duration-duplicate :duration)
+      (derive :duration-good-times :duration)
       ))
 
 (defmulti apply-card
@@ -299,6 +332,18 @@
                          (get-opponent game-map player-key))
      (fn [funstruct]
        (assoc funstruct pos (gap))))))
+
+(defmethod apply-card
+  :mutator-random-shot
+  [game-map player-key card & args]
+  ((apply-to-funstruct game-map (get-opponent game-map player-key) player-key)
+   (fn [funstruct]
+     (->> funstruct
+          (keep-indexed (fn [i {t :terminal}] (if (not= :gap t) i)))
+          ((fn [indices]
+             (if (empty? indices)
+               funstruct
+               (u/delete-from-vector funstruct (rand-nth indices)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -407,17 +452,6 @@
   ((u/log "Unsupported card played " card)
    game-map))
 
-(defmethod apply-card
-  :mutator-sleep-shot
-  [game-map player-key card & args]
-  ((apply-to-funstruct game-map player-key)
-   (fn [funstruct]
-     (->> funstruct
-          (keep-indexed (fn [i {t :terminal}] (if (not= :gap t) i)))
-          ((fn [indices]
-             (if (empty? indices)
-               funstruct
-               (u/delete-from-vector funstruct (rand-nth indices)))))))))
 
 ;;; API
 
@@ -440,16 +474,6 @@
      p2-done (assoc game :win p2)
      :else game
      )))
-
-(defn- duration-duplicate-active? [board]
-  (:duration-duplicate (into #{} (map :key board))))
-
-(defn- process-duration-duplicate [game player card]
-  (let [opp (get-opponent game player)
-        board (get-board game opp)]
-    (if (duration-duplicate-active? board)
-      (take-card game opp card)
-      game)))
 
 ;; TODO exception safe
 (defn use-card

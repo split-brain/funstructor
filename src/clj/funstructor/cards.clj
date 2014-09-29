@@ -15,6 +15,7 @@
     :mutator-position-gap
     ;:mutator-shot
     :mutator-cleanup
+    ;:mutator-random-shot
 
     :action-thief-1
     :action-discard-1
@@ -26,6 +27,8 @@
 
     :duration-luck-1
     :duration-luck-2
+    :duration-duplicate
+    :duration-good-times
 
     })
 
@@ -136,6 +139,16 @@
     :weight 50
     :img "mutator_shot.svg"}
 
+   :mutator-random-shot
+   {:name "Random Shot"
+    :description
+    "remove random terminal from the opponents funstruct"
+    :target :self
+    :type :mutator
+    :weight 300
+    :img "mutator_random_shot.svg"}
+
+   
    :mutator-cleanup
    {:name "Cleanup"
     :description
@@ -213,6 +226,7 @@ and take 5 from deck"
     :type :action
     :weight 20
     :img "action_greedy.svg"}
+
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Duration
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -236,6 +250,26 @@ and take 5 from deck"
     :weight 10
     :turns-left 3
     :img "duration_luck_2.svg"}
+
+   :duration-duplicate
+   {:name "Duplicate"
+    :description
+    "get a copy of each card played by an opponent. Lasts 5 turns"
+    :target :self
+    :type :duration
+    :weight 300
+    :turns-left 5
+    :img "duration_duplicate.svg"}
+
+   :duration-good-times
+   {:name "Good times"
+    :description
+    "each turn get one more card. Lasts 5 turns"
+    :target :self
+    :type :duration
+    :weight 300
+    :turns-left 5
+    :img "duration_good_times.svg"}
 
 
    })
