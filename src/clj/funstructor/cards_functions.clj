@@ -407,6 +407,18 @@
   ((u/log "Unsupported card played " card)
    game-map))
 
+(defmethod apply-card
+  :mutator-sleep-shot
+  [game-map player-key card & args]
+  ((apply-to-funstruct game-map player-key)
+   (fn [funstruct]
+     (->> funstruct
+          (keep-indexed (fn [i {t :terminal}] (if (not= :gap t) i)))
+          ((fn [indices]
+             (if (empty? indices)
+               funstruct
+               (u/delete-from-vector funstruct (rand-nth indices)))))))))
+
 ;;; API
 
 

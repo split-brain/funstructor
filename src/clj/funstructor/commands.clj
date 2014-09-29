@@ -45,12 +45,12 @@
                                                                        (gs/get-player-name (gs/current-global-state) uuid2))
                                                              (f/log-message "Game started!")
                                                              ((fn [g] (f/log-message g (str
-                                                                                       (f/get-player-name-by-id g uuid1)
-                                                                                       " vs "
-                                                                                       (f/get-player-name-by-id g uuid2))))
-                                                             )))
+                                                                                        (f/get-player-name-by-id g uuid1)
+                                                                                        " vs "
+                                                                                        (f/get-player-name-by-id g uuid2))))
+                                                              )))
                                  #(apply gs/remove-from-pending % pending-pair)))
-
+        
         (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
         (let [added-game (gs/get-game (gs/current-global-state) game-id)
               p1-goal (f/get-goal added-game uuid1)
