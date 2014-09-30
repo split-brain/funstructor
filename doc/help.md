@@ -9,7 +9,7 @@ a quick game tutorial that helps you understand the basics.
 
 Open the [funstructor.clojurecup.com](http://funstructor.clojurecup.com), type your name and press play. System looking for an opponent for you.
 
-Unfortunately, the game are not popular yet, so there may be no active player. If you really want to test, open second tab in a browser and play with yourself.
+Unfortunately, the game is not popular yet, so there may be no active player. If you really want to test, open second tab in a browser and play with yourself.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/enter_the_game.png"
      width="600"
@@ -29,7 +29,7 @@ The game is like a programming, your **goal** is to make some clojure code, eith
      width="251"
 	 height="171" />
 
-The same goal for opponent, but it has another piece of clojure code. You don't know each other goals. Instead of programming, where you type characters, in thi game you **play cards** to make code.
+The same goal for opponent, but it has another piece of clojure code. You don't know each other goals. Instead of programming, where you type characters, in this game you **play cards** to make code.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/your_cards.png"
      width="600"
@@ -75,7 +75,7 @@ Some terminals need input, like `ID` or `NUM`. Play them the same way as other t
      width="600"
 	 height="180" />
 
-**Note:** Identifiers in clojure could contain a lot of symbols: `?`, `!`, `-`. Even more `+` and `*` are identifiers!
+**Note:** Identifiers in clojure could contain a lot of symbols: `?`, `!`, `-`. Even more: `+` and `*` are identifiers!
 
 After you've played all cards you can or you want, finish your turn by pressing button "End turn". Now the opponent plays. His view below.
 
@@ -97,11 +97,16 @@ Game log is useful because you can also use it as a chat with an opponent.
 
 Sound notifications wake up opponent if he forgot to end a turn.
 
-After both players end their turns, new game turn started. Each player gets two cards from the deck to the hand, and third card goes to lucky player. Random knows who is lucky. Pay attentiom that third card appears in the log, so you can make assumptions what cards are in opponent's hand.
+After both players end their turns, new game turn started. Each player gets two cards from the deck to the hand, and third card goes to lucky player. Random knows who is lucky. Pay attention that third card appears in the log, so you can make assumptions what cards are in opponent's hand.
 
 Turn by turn players build their funstructs, and who made his goal first - wins.
 
-There are also a bunch of interesting card types like **Durations** or **Actions** that adds new functionality, investigate them by playing. And don't hesitate to leave feedback, we want to improve the game. 
+There are also a bunch of interesting card types like **Durations** or **Actions** that adds new functionality, investigate them by playing. 
 
-[Vote for us](https://clojurecup.com/#/apps/funstructor)
+<img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/more_cards.png"
+     width="600"
+	 height="124" />
 
+Don't hesitate to leave feedback and vote for us!
+
+[<img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/vote.jpeg">](https://clojurecup.com/#/apps/funstructor)
