@@ -449,8 +449,8 @@
 (defmethod apply-card
   :default
   [game-map player-key card & args]
-  ((u/log "Unsupported card played " card)
-   game-map))
+  (u/log "Unsupported card played " card)
+  game-map)
 
 
 ;;; API
@@ -493,7 +493,7 @@
 
           ;; duration effects
           (process-duration-duplicate player-key card)
-          
+
           (check-for-win)
           ;; log winner
           (#(let [winner (:win %)]
