@@ -231,7 +231,7 @@
 
         (process-duration-good-times-for-player p1)
         (process-duration-good-times-for-player p2)
-        
+
         ;; random card
         (#(let [c (c/next-card)
                 win3 (third-card-winner game-map)]
@@ -242,7 +242,7 @@
 
         ;; decrement durations
         (decrement-durations)
-        
+
         ;; increment turn num
         (update-in [:turn] inc)
         (#(log-message % (str "Turn: " (:turn %))))
