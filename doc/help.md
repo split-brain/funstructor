@@ -7,9 +7,9 @@ a quick game tutorial that helps you understand the basics.
 
 ## Connecting
 
-Open the [funstructor.clojurecup.com](http://funstructor.clojurecup.com), type your name and press play. System looking for an opponent for you.
+Open the [funstructor.clojurecup.com](http://funstructor.clojurecup.com), type your name and press play.
 
-Unfortunately, the game is not popular yet, you may have to wait for another player to connect. Ask your friend to play with you or open the game in a separate browser tab and play with yourself.
+You may have to wait for another player to connect. Ask your friend to play with you or open the game in a separate browser tab and play with yourself.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/enter_the_game.png"
      width="600"
