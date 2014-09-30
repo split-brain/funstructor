@@ -2,6 +2,15 @@
 
 Turn-based multiplayer card game for the geek audience.
 
+[<img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/vote.jpeg">](https://clojurecup.com/#/apps/funstructor)
+
+
+## Help
+
+We highly recommend you to go through tutorial, it takes just few minutes.
+
+[Tutorial](https://github.com/clojurecup2014/funstructor/blob/master/doc/help.md)
+
 ## Goal
 
 Your goal is to build clojure function from the
