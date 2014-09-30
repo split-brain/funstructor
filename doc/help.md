@@ -1,6 +1,6 @@
 # Help
 
-Lot of people get confusing when starting the game, so we've made
+Lot of people get confused when playing Funstructor for the first tim, so we've made
 a quick game tutorial that helps you understand the basics.
 
 **Note:** to play you must love clojure and card games
@@ -9,13 +9,13 @@ a quick game tutorial that helps you understand the basics.
 
 Open the [funstructor.clojurecup.com](http://funstructor.clojurecup.com), type your name and press play. System looking for an opponent for you.
 
-Unfortunately, the game is not popular yet, so there may be no active player. If you really want to test, open second tab in a browser and play with yourself.
+Unfortunately, the game is not popular yet, you may have to wait for another player to connect. Ask your friend to play with you or open the game in a separate browser tab and play with yourself.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/enter_the_game.png"
      width="600"
 	 height="320" />
 
-After we found an opponent for you the game begins and you see a *game screen*
+When you found an opponent to play with, the game begins and you see a *game screen*
 
 ## Game
 
@@ -29,7 +29,7 @@ The game is like a programming, your **goal** is to make some clojure code, eith
      width="251"
 	 height="171" />
 
-The same goal for opponent, but it has another piece of clojure code. You don't know each other goals. Instead of programming, where you type characters, in this game you **play cards** to make code.
+Your opponent that you will play against has the same goal but he will be assigned a different task. Players don't know what task their opponent has. Instead of programming, where you type characters, in this game you **play cards** to make code.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/your_cards.png"
      width="600"
@@ -37,7 +37,7 @@ The same goal for opponent, but it has another piece of clojure code. You don't 
 
 Obviously, you can't see opponent's cards.
 
-This is your editor where you can put some code, we call it **board**
+This is your editor where you can put your cards, we call it a **board**
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/board.png"
      width="600"
@@ -46,19 +46,19 @@ This is your editor where you can put some code, we call it **board**
 There are yellow lines on the board - **gaps**, empty spaces where you can put some tokens. In order to add more gaps, use **red** cards: `Gap`, `Left Gap` or `Right Gap`
 
 To use `Left Gap` and `Right Gap` just drag and drop them on your board.
-As effect, new gap will be added to the leftmost or rightmost position, respectively.
+As a result, a new gap will be added to the leftmost or rightmost position, respectively.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/right_gap.png"
      width="600"
 	 height="180" />
 
-`Gap` card is much useful, because you can specify the position for the gap.
+`Gap` card is very useful, because you can specify the position for the gap.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/pos_gap.png"
      width="600"
 	 height="180" />
 
-The problem is drop area is very small (*we are working on the usability!*) So get the hand to use it.
+The problem is that the drop area is very small (*we are working on the usability!*) So get the hand to use it.
 
 But gaps are just gaps, you need some code!
 
@@ -77,13 +77,13 @@ Some terminals need input, like `ID` or `NUM`. Play them the same way as other t
 
 **Note:** Identifiers in clojure could contain a lot of symbols: `?`, `!`, `-`. Even more: `+` and `*` are identifiers!
 
-After you've played all cards you can or you want, finish your turn by pressing button "End turn". Now the opponent plays. His view below.
+After you've played all cards you can or you want, finish your turn by pressing the "End turn" button. Now the opponent plays. His view is below.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/opponents_view.png"
      width="600"
 	 height="320" />
 
-Few things important here. Opponent can't see your cards and can't see your goal. But! He can see *funstruct* that you've build. He also can inspect game log to see what've you played last turn.
+Few important things to note here. Opponent can't see your cards and can't see your goal. But! He can see *funstruct* that you've build. He also can inspect game log to see what've you played on the last turn.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/game_log.png"
      width="200"
@@ -97,16 +97,16 @@ Game log is useful because you can also use it as a chat with an opponent.
 
 Sound notifications wake up opponent if he forgot to end a turn.
 
-After both players end their turns, new game turn started. Each player gets two cards from the deck to the hand, and third card goes to lucky player. Random knows who is lucky. Pay attention that third card appears in the log, so you can make assumptions what cards are in opponent's hand.
+After both players end their turns, new game turn starts. Each player gets two cards from the deck to the hand, and third card goes to a random player. Pay attention that third card appears in the log, so you can make assumptions what cards are in opponent's hand.
 
-Turn by turn players build their funstructs, and who made his goal first - wins.
+Turn by turn players build their funstructs, and who the one who managed to achieve his goal first - wins.
 
-There are also a bunch of interesting card types like **Durations** or **Actions** that adds new functionality, investigate them by playing. 
+There are also a bunch of interesting card types like **Durations** or **Actions** that adds new functionality, investigate them by playing.
 
 <img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/tutorial/more_cards.png"
      width="600"
 	 height="124" />
 
-Don't hesitate to leave feedback and vote for us!
+Don't hesitate to leave feedback, suggest new cards and vote for us!
 
 [<img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/vote.jpeg">](https://clojurecup.com/#/apps/funstructor)
