@@ -1,6 +1,6 @@
 # Help
 
-Lot of people get confused when playing Funstructor for the first tim, so we've made
+Lot of people get confused when playing Funstructor for the first time, so we've made
 a quick game tutorial that helps you understand the basics.
 
 **Note:** to play you must love clojure and card games
