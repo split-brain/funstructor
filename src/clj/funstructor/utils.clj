@@ -15,9 +15,14 @@
   (vec (concat (take pos vector)
                (drop (inc pos) vector))))
 
+(defn exception-stacktrace-printer [e]
+  (.printStackTrace e))
+
+;; Logging routines
+
 (def log-chan (chan))
 
-(defn start-logging []
+(defn logging-process []
   (go-loop []
     (apply println (concat (<! log-chan) ["\n"]))
     (recur)))
@@ -27,5 +32,5 @@
     (>! log-chan args)))
 
 (defn debug [e]
-  (println e)
+  (log e)
   e)

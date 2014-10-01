@@ -6,7 +6,7 @@
             [ring.middleware.reload :as reload]
             [ring.middleware.stacktrace :as st]
             [chord.http-kit :refer [wrap-websocket-handler]]
-            [clojure.core.async :as async]
+            [clojure.core.async :as a]
             [compojure.core :refer [defroutes GET]]
 
             [funstructor.commands :as commands]
@@ -15,8 +15,8 @@
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (u/log "Opened connection from" (:remote-addr req))
-  (async/go-loop []
-    (let [{:keys [message error] :as msg} (async/<! ws-channel)]
+  (a/go-loop []
+    (let [{:keys [message error] :as msg} (a/<! ws-channel)]
       (u/log "Received message" msg)
 
 
@@ -33,8 +33,8 @@
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/ws" [] (-> ws-handler
                     (wrap-websocket-handler {:format :str
-                                             :read-ch (async/chan nil nil #(.printStackTrace %))
-                                             :write-ch (async/chan nil nil #(.printStackTrace %))})))
+                                             :read-ch (a/chan nil nil #(.printStackTrace %))
+                                             :write-ch (a/chan nil nil #(.printStackTrace %))})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
@@ -49,7 +49,7 @@
 (defn -main [& args]
   (let [port (Integer/parseInt
               (or (System/getenv "PORT") "8080"))]
-    (u/start-logging)
+    (u/logging-process)
     (u/log "Server started on port " port)
     (commands/pending-checker)
     (run-server application {:port port :join? false})))

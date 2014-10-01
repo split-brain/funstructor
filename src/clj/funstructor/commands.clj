@@ -1,24 +1,24 @@
 (ns funstructor.commands
-  (:require [cheshire.core :refer [generate-string parse-string]]
-            [clojure.core.async :refer [>! <! go go-loop timeout]]
+  (:require [cheshire.core :as chs]
+            [clojure.core.async :as a]
             [funstructor.game-state :as gs]
             [funstructor.cards :as cards]
             [funstructor.cards-functions :as f]
             [funstructor.utils :as u]))
 
 (defn encode-command [command]
-  (generate-string command))
+  (chs/generate-string command))
 
 (defn decode-command [in-str]
   (try
-    (parse-string in-str true)
+    (chs/parse-string in-str true)
     (catch java.io.IOException e {:type :decode-error :data in-str})))
 
 (defn send-commands [& {:keys [commands channels]}]
   (doseq [channel channels]
-    (go (doseq [command commands]
+    (a/go (doseq [command commands]
           (let [json (encode-command command)]
-            (>! channel json))))))
+            (a/>! channel json))))))
 
 (defn send-command [command channel]
   (send-commands :commands [command] :channels [channel]))
@@ -30,8 +30,8 @@
   {:type "disconnected"})
 
 (defn pending-checker []
-  (go-loop []
-    (<! (timeout 3000))
+  (a/go-loop []
+    (a/<! (a/timeout 3000))
     (when-let [pending-pair (gs/get-pending-pair (gs/current-global-state))]
       (let [[uuid1 uuid2] pending-pair
             [channel1 channel2] (map #(gs/channel-for-player (gs/current-global-state) %) pending-pair)
@@ -49,7 +49,7 @@
                                                                                         (f/get-player-name-by-id g uuid2))))
                                                               )))
                                  #(apply gs/remove-from-pending % pending-pair)))
-        
+
         (u/log "Taking two players for game " game-id " with uuids: " pending-pair)
         (let [added-game (gs/get-game (gs/current-global-state) game-id)
               p1-goal (f/get-goal added-game uuid1)
