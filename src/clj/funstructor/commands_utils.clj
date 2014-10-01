@@ -1,5 +1,6 @@
 (ns funstructor.command-utils
-  (:require [clojure.core.async :as a]))
+  (:require [clojure.core.async :as a]
+            [cheshire.core :as chs]))
 
 (defn encode-command [command]
   (chs/generate-string command))
@@ -18,4 +19,4 @@
 
 (defn send-cmd [command channel]
   (a/go
-    (a/>! (encode command) channel)))
+    (a/>! (encode-command command) channel)))

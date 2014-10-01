@@ -17,33 +17,31 @@
 
 
 (defn get-player-name-by-id [game player]
-  (get-in game [:player-uuid-map player]))
+  (get-in game [:players player :name]))
 
 (defn- gap []
   {:terminal :gap
    :value nil})
 
-(defn- make-player-state [goal opponent]
-  {:ready false
+(defn- make-player-state [goal opponent name]
+  {:name name
    :opponent opponent
    :cards []
    :funstruct [(gap)]
    :goal goal
    :board []})
 
-(defn make-game [p1 p2]
+(defn make-game [p1-id p2-id p1-name p2-name]
   (->
    {:players
     (let [[f1 f2] (base/get-two-random-funstructs)]
-      {p1 (make-player-state f1 p2)
-       p2 (make-player-state f2 p1)})
-    :current-turn p1
+      {p1-id (make-player-state f1 p2-id p1-name)
+       p2-id (make-player-state f2 p1-id p2-name)})
+    :current-turn p1-id
     :turn-ends 0
     :turn 1
     :messages []
-    :player-uuid-map {} ;; uuid -> name
-    :win nil}
-))
+    :win nil}))
 
 (defn player-win [game player & reason]
   (-> game
