@@ -5,19 +5,21 @@
             [funstructor.command-utils :as cu]
             [funstructor.utils :as u]))
 
-(defn handshake-process [ws-chan pending-players-chan]
-  (a/go
-    (let [{:keys [user-name]} (a/<! (cu/wait-for-cmd :game-request ws-chan))
-          player-uuid (u/gen-uuid)]
-      (a/<! (cu/send-cmd {:type :game-request-ok
-                          :uuid player-uuid}
-                         ws-chan))
-      (a/>! {:ws-chan ws-chan
-             :name user-name
-             :uuid player-uuid}
-            pending-players-chan))))
-
+(def turn-time-delay 60000)
 (def pending-take-delay 5000)
+
+(defn handshake-process [ws-chan pending-players-chan]
+  (let [br-ch (cu/branch-channel ws-chan)]
+    (a/go
+      (let [{:keys [user-name]} (a/<! (cu/read-cmd :game-request br-ch))
+            player-uuid (u/gen-uuid)]
+        (a/<! (cu/write-cmd {:type :game-request-ok
+                             :uuid player-uuid}
+                            br-ch))
+        (a/>! {:br-ch br-ch
+               :name user-name
+               :uuid player-uuid}
+              pending-players-chan)))))
 
 (defn- take-two-random-elements-from-set [set]
   (and (< (count set) 2)
@@ -54,48 +56,54 @@
 (defn- pre-game-exchange [game-id game-map p1-info p2-info]
   (let [p1-goal (f/get-goal game-map (:uuid p1-info))
         p2-goal (f/get-goal game-map (:uuid p2-info))]
-    (go
-      (a/<! (cu/send-cmd
+    (a/go
+      (a/<! (cu/write-cmd
              {:type :start-game
               :game-id game-id
               :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
               :goal-name (:name p1-goal)
               :goal-string (:ra2 p1-goal)}
-             (:ws-channel p1-info)))
-      (a/<! (cu/send-cmd
+             (:br-ch p1-info)))
+      (a/<! (cu/write-cmd
              {:type :start-game
               :game-id game-id
               :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
               :goal-name (:name p2-goal)
               :goal-string (:ra2 p2-goal)}
-             (:ws-channel p2-info)))
+             (:br-ch p2-info)))
 
-      ;; TODO: Assuming that client is good guy
-      ;; Rework this in future
+      ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
+      ;; Rework this in future ... with timeouts possibly
 
-      (a/<! (wait-for :start-game-ok (:ws-channel p1-info)))
-      (a/<! (wait-for :start-game-ok (:ws-channel p2-info)))
-      )))
+      (a/<! (cu/read-cmd :start-game-ok (:br-ch p1-info)))
+      (a/<! (cu/read-cmd :start-game-ok (:br-ch p2-info))))))
+
+(defn- chat-loop [])
 
 (defn- game-loop [game-id initial-game-map p1-id p1-chan p2-id p2-chan]
-  (a/go-loop [game-map initial-game-map]
-    ))
+  (let [p1-pub (a/pub p1-chan)
+        p2-pub (a/pub p2-chan)]
+      (a/go-loop [timeout-chan (a/timeout turn-time-delay)
+                  game-map initial-game-map]
+        )))
 
 (defn game-process [p1 p2]
-  (letfn [(pre-game-exchange [game-id game-map p1-chan p2-chan]
-            (a/go
-              (a/<! (send-cmd {:type :start-game
-                               :enemy (f/get-player-name-by-id game-map )} p1-chan))))]
-    (let [game-uuid (u/gen-uuid)
-          player1-id (:uuid p1)
-          player1-chan (:ws-chan p1)
-          player1-name (:name p1)
-          player2-id (:uuid p2)
-          player2-chan (:ws-chan p2)
-          player2-name (:name p2)
+  (let [game-uuid (u/gen-uuid)
+        player1-id (:uuid p1)
+        player1-chan (:br-ch p1)
+        player1-name (:name p1)
+        player2-id (:uuid p2)
+        player2-chan (:br-ch p2)
+        player2-name (:name p2)
 
-          initial-game-map (f/make-game player1-id player2-id player1-name player2-name)]
+        initial-game-map (f/make-game player1-id player2-id player1-name player2-name)]
 
-      (go
-        (<! (pre-game-exchange game-id initial-game-map p1 p2)))
-      )))
+    (a/go
+      (a/<! (pre-game-exchange game-uuid initial-game-map p1 p2))
+      (game-loop game-uuid
+                 initial-game-map
+                 player1-id
+                 player1-chan
+                 player2-id
+                 player2-chan))))
+
