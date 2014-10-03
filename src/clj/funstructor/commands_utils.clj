@@ -30,9 +30,19 @@
             server-side-commands
             (repeat (a/chan))))}))
 
-(defn read-cmd [command-type br-ch]
+(defn get-branch-ch [br-ch cmd-type]
+  (get-in br-ch [:branches cmd-type]))
+
+(defn get-branch-chs [br-ch & cmd-types]
+  (mapv #(get-branch-ch br-ch %) cmd-types))
+
+(defn read-cmd-from-ch [ch]
   (a/go
-    (a/<! (decode-cmd (get-in br-ch [:branches command-type])))))
+    (decode-cmd (a/<! ch))))
+
+(defn read-cmd [cmd-type br-ch]
+  (a/go
+    (a/<! (read-cmd-from-ch (get-branch-ch cmd-type)))))
 
 (defn write-cmd [cmd br-ch]
   (a/go

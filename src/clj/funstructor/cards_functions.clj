@@ -48,6 +48,9 @@
       (assoc :win player)
       (log-message (or reason ""))))
 
+(defn get-current-turn [game]
+  (:current-turn game))
+
 (defn get-game-players [game]
   (keys (:players game)))
 

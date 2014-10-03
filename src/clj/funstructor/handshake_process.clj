@@ -3,6 +3,7 @@
 
             [funstructor.cards-functions :as f]
             [funstructor.command-utils :as cu]
+            [funstructor.cards :as cards]
             [funstructor.utils :as u]))
 
 (def turn-time-delay 60000)
@@ -78,14 +79,114 @@
       (a/<! (cu/read-cmd :start-game-ok (:br-ch p1-info)))
       (a/<! (cu/read-cmd :start-game-ok (:br-ch p2-info))))))
 
-(defn- chat-loop [])
+(defn make-player-update-data [game-map player-id]
+  (letfn [(fix-board [board]
+            (map (fn [board-elem]
+                   (update-in board-elem [:key] cards/cards))
+                 board))]
+    (let [player-state (f/get-player-state game-map player-id)
+          opponent-id (f/get-opponent game-map player-id)
+          opponent-state (f/get-player-state game-map opponent-id)]
+      (-> player-state
 
-(defn- game-loop [game-id initial-game-map p1-id p1-chan p2-id p2-chan]
-  (let [p1-pub (a/pub p1-chan)
-        p2-pub (a/pub p2-chan)]
-      (a/go-loop [timeout-chan (a/timeout turn-time-delay)
-                  game-map initial-game-map]
-        )))
+          ;; Fixing board's cards
+          (update-in
+           [:board]
+           fix-board)
+
+          ;; Fixing cards in hand
+          (update-in
+           [:cards]
+           (fn [cards]
+             (map cards/cards cards)))
+
+          (assoc :enemy-board (f/get-board game-map opponent-id))
+          (assoc :current-turn (:current-turn game-map))
+          (assoc :enemy-cards-num (count (f/get-cards game-map opponent-id)))
+          (assoc :enemy-funstruct (f/get-funstruct game-map opponent-id))))))
+
+(defn make-game-update-data [game-map]
+  (select-keys game-map [:messages :win]))
+
+(defn make-update-data [game-map player-id]
+  (merge (make-game-update-data game-map)
+         (make-player-update-data game-map player-id)))
+
+(defn send-game-updates [game-map p1-id p1-ch p2-id p2-ch]
+  (a/go
+    (let [p1-game-update {:type :game-update
+                          :data (make-update-data game-map p1-id)}
+          p2-game-update {:type :game-update
+                          :data (make-update-data game-map p2-id)}]
+      (a/<! (cu/write-cmd p1-game-update
+                          p1-ch))
+      (a/<! (cu/write-cmd p2-game-update
+                          p2-ch)))))
+
+
+(defn- apply-end-turn-cmd [game-map player-id end-turn-cmd]
+  game-map)
+
+(defn- apply-action-cmd [game-map player-id action-cmd]
+  game-map)
+
+(defn game-update-process [game-id initial-game-map p1-id p1-ch p2-id p2-ch]
+  (let [p1-action-ch (cu/get-branch-ch p1-ch :action)
+        p2-action-ch (cu/get-branch-ch p1-ch :action)
+        p1-end-turn-ch (cu/get-branch-ch p1-ch :end-turn)
+        p2-end-turn-ch (cu/get-branch-ch p1-ch :end-turn)]
+    (a/go-loop [game-map initial-game-map
+                timer (a/timeout turn-time-delay)]
+      (let [current-turn (f/get-current-turn game-map)
+            [value ch] (a/alts! [p1-action-ch
+                                 p2-action-ch
+                                 p1-end-turn-ch
+                                 p2-end-turn-ch
+                                 timer])]
+        (condp = ch
+
+          p1-action-ch
+          (if (= current-turn p1-id)
+            (let [new-game-map (apply-action-cmd game-map p1-id value ;; decode this
+                                                 )]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map timer))
+            (recur game-map timer))
+
+          p2-action-ch
+          (if (= current-turn p2-id)
+            (let [new-game-map (apply-action-cmd game-map p2-id value ;; decode this
+                                                 )]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map timer))
+            (recur game-map timer))
+
+          p1-end-turn-ch
+          (if (= current-turn p1-id)
+            (let [new-game-map (apply-end-turn-cmd game-map p1-id value)]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map (a/timeout turn-time-delay)))
+            (recur game-map timer))
+
+          p2-end-turn-ch
+          (if (= current-turn p2-id)
+            (let [new-game-map (apply-end-turn-cmd game-map p2-id value)]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map (a/timeout turn-time-delay)))
+            (recur game-map timer))
+
+          timer
+          (let [new-game-map (apply-end-turn-cmd
+                              game-map
+                              current-turn
+                              {:type :end-turn
+                               :game-id game-id})]
+            (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+            (recur new-game-map (a/timeout turn-time-delay))))))))
+
+(defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
+  ((a/go-loop []
+     )))
 
 (defn game-process [p1 p2]
   (let [game-uuid (u/gen-uuid)
@@ -100,10 +201,11 @@
 
     (a/go
       (a/<! (pre-game-exchange game-uuid initial-game-map p1 p2))
-      (game-loop game-uuid
-                 initial-game-map
-                 player1-id
-                 player1-chan
-                 player2-id
-                 player2-chan))))
+      (game-update-process game-uuid
+                           initial-game-map
+                           player1-id
+                           player1-chan
+                           player2-id
+                           player2-chan)
+      )))
 
