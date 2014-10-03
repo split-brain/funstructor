@@ -185,8 +185,29 @@
             (recur new-game-map (a/timeout turn-time-delay))))))))
 
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
-  ((a/go-loop []
-     )))
+  (let [p1-chat-msg-ch (cu/get-branch-ch p1-ch :chat-message)
+        p2-chat-msg-ch (cu/get-branch-ch p2-ch :chat-message)]
+    (a/go-loop []
+      (let [[value ch] (a/alts! p1-chat-msg-ch p2-chat-msg-ch)]
+        (condp = ch
+
+          p1-chat-msg-ch
+          ;; Sending command asyncronously
+          (do (cu/write-cmd-to-chs
+               {:type :chat-message-response
+                :data {:player-id p1-id
+                       :message nil ;; message here
+                       }}
+               [p1-ch p2-ch] true)
+              (recur))
+
+          p2-chat-msg-ch
+          (do (cu/write-cmd-to-chs
+               {:type :chat-message-response
+                :data {:player-id p2-id
+                       :message nil}}
+               [p1-ch p2-ch] true)
+              (recur)))))))
 
 (defn game-process [p1 p2]
   (let [game-uuid (u/gen-uuid)
@@ -207,5 +228,16 @@
                            player1-chan
                            player2-id
                            player2-chan)
-      )))
+      (game-chat-process game-uuid
+                         player1-id
+                         player1-chan
+                         player2-id
+                         player2-chan))))
+
+
+
+
+
+
+
 

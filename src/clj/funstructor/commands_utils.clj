@@ -47,3 +47,10 @@
 (defn write-cmd [cmd br-ch]
   (a/go
     (a/>! (:write-ch br-ch) (encode-cmd cmd))))
+
+(defn write-cmd-to-chs [cmd chs & async-send]
+  (a/go
+    (doseq [ch chs]
+      (if async-send
+        (write-cmd cmd ch)
+        (a/<! (write-cmd cmd ch))))))
