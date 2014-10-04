@@ -2,7 +2,7 @@
   (:require [clojure.core.async :as a]
 
             [funstructor.cards-functions :as f]
-            [funstructor.command-utils :as cu]
+            [funstructor.commands-utils :as cu]
             [funstructor.cards :as cards]
             [funstructor.utils :as u]))
 
@@ -11,12 +11,11 @@
 
 (defn handshake-process [ws-chan pending-players-chan]
   (let [br-ch (cu/branch-channel ws-chan)]
-    (a/go
-      (let [{:keys [user-name]} (a/<! (cu/read-cmd :game-request br-ch))
+     (a/go
+      (let [{:keys [user-name]} (cu/read-cmd-by-type br-ch :game-request)
             player-uuid (u/gen-uuid)]
-        (a/<! (cu/write-cmd {:type :game-request-ok
-                             :uuid player-uuid}
-                            br-ch))
+        (cu/write-cmd-to-ch br-ch {:type :game-request-ok
+                                   :uuid player-uuid})
         (a/>! {:br-ch br-ch
                :name user-name
                :uuid player-uuid}
@@ -58,26 +57,28 @@
   (let [p1-goal (f/get-goal game-map (:uuid p1-info))
         p2-goal (f/get-goal game-map (:uuid p2-info))]
     (a/go
-      (a/<! (cu/write-cmd
-             {:type :start-game
-              :game-id game-id
-              :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
-              :goal-name (:name p1-goal)
-              :goal-string (:ra2 p1-goal)}
-             (:br-ch p1-info)))
-      (a/<! (cu/write-cmd
-             {:type :start-game
-              :game-id game-id
-              :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
-              :goal-name (:name p2-goal)
-              :goal-string (:ra2 p2-goal)}
-             (:br-ch p2-info)))
+      (cu/write-cmd-to-ch
+       (:br-ch p1-info)
+       {:type :start-game
+        :game-id game-id
+        :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
+        :goal-name (:name p1-goal)
+        :goal-string (:raw p1-goal)})
+      (cu/write-cmd-to-ch
+       (:br-ch p2-info)
+       {:type :start-game
+        :game-id game-id
+        :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
+        :goal-name (:name p2-goal)
+        :goal-string (:raw p2-goal)})
 
       ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
       ;; Rework this in future ... with timeouts possibly
 
-      (a/<! (cu/read-cmd :start-game-ok (:br-ch p1-info)))
-      (a/<! (cu/read-cmd :start-game-ok (:br-ch p2-info))))))
+
+      ;(cu/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
+      ;(cu/read-cmd-by-type (:br-ch p2-info) :start-game-ok)
+      )))
 
 (defn make-player-update-data [game-map player-id]
   (letfn [(fix-board [board]
@@ -118,96 +119,86 @@
                           :data (make-update-data game-map p1-id)}
           p2-game-update {:type :game-update
                           :data (make-update-data game-map p2-id)}]
-      (a/<! (cu/write-cmd p1-game-update
-                          p1-ch))
-      (a/<! (cu/write-cmd p2-game-update
-                          p2-ch)))))
+      (cu/write-cmd-to-ch p1-ch p1-game-update)
+      (cu/write-cmd-to-ch p2-ch p2-game-update))))
 
 
-(defn- apply-end-turn-cmd [game-map player-id end-turn-cmd]
+(defmulti apply-cmd (fn [game-map player-id cmd] (:type cmd)))
+
+(defmethod apply-cmd :action [game-map player-id cmd]
   game-map)
 
-(defn- apply-action-cmd [game-map player-id action-cmd]
+(defmethod apply-cmd :end-turn [game-map player-id cmd]
   game-map)
+
+(defmulti cmd-resets-timer? :type)
+
+(defmethod cmd-resets-timer? :action [_] false)
+(defmethod cmd-resets-timer? :end-turn [_] true)
 
 (defn game-update-process [game-id initial-game-map p1-id p1-ch p2-id p2-ch]
-  (let [p1-action-ch (cu/get-branch-ch p1-ch :action)
-        p2-action-ch (cu/get-branch-ch p1-ch :action)
-        p1-end-turn-ch (cu/get-branch-ch p1-ch :end-turn)
-        p2-end-turn-ch (cu/get-branch-ch p1-ch :end-turn)]
-    (a/go-loop [game-map initial-game-map
-                timer (a/timeout turn-time-delay)]
-      (let [current-turn (f/get-current-turn game-map)
-            [value ch] (a/alts! [p1-action-ch
-                                 p2-action-ch
-                                 p1-end-turn-ch
-                                 p2-end-turn-ch
-                                 timer])]
-        (condp = ch
 
-          p1-action-ch
-          (if (= current-turn p1-id)
-            (let [new-game-map (apply-action-cmd game-map p1-id value ;; decode this
-                                                 )]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map timer))
-            (recur game-map timer))
+  (a/go-loop [game-map initial-game-map
+              timer (a/timeout turn-time-delay)]
+    (let [current-turn (f/get-current-turn game-map)
+          [value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
+                                           [:action :end-turn]
+                                           timer)]
+      (condp = ch
 
-          p2-action-ch
-          (if (= current-turn p2-id)
-            (let [new-game-map (apply-action-cmd game-map p2-id value ;; decode this
-                                                 )]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map timer))
-            (recur game-map timer))
-
-          p1-end-turn-ch
-          (if (= current-turn p1-id)
-            (let [new-game-map (apply-end-turn-cmd game-map p1-id value)]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map (a/timeout turn-time-delay)))
-            (recur game-map timer))
-
-          p2-end-turn-ch
-          (if (= current-turn p2-id)
-            (let [new-game-map (apply-end-turn-cmd game-map p2-id value)]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map (a/timeout turn-time-delay)))
-            (recur game-map timer))
-
-          timer
-          (let [new-game-map (apply-end-turn-cmd
-                              game-map
-                              current-turn
-                              {:type :end-turn
-                               :game-id game-id})]
+        p1-ch
+        (if (= current-turn p1-id)
+          (let [new-game-map (apply-cmd game-map p1-id value)]
             (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-            (recur new-game-map (a/timeout turn-time-delay))))))))
+            (recur new-game-map (if (cmd-resets-timer? value)
+                                  (a/timeout turn-time-delay)
+                                  timer)))
+          (recur game-map timer))
+
+        p2-ch
+        (if (= current-turn p2-id)
+          (let [new-game-map (apply-cmd game-map p2-id value)]
+            (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+            (recur new-game-map (if (cmd-resets-timer? value)
+                                  (a/timeout turn-time-delay)
+                                  timer)))
+          (recur game-map timer))
+
+        timer
+        (let [new-game-map (apply-cmd
+                            game-map
+                            current-turn
+                            {:type :end-turn
+                             :game-id game-id})]
+          (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+          (recur new-game-map (a/timeout turn-time-delay)))))))
+
 
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
-  (let [p1-chat-msg-ch (cu/get-branch-ch p1-ch :chat-message)
-        p2-chat-msg-ch (cu/get-branch-ch p2-ch :chat-message)]
-    (a/go-loop []
-      (let [[value ch] (a/alts! p1-chat-msg-ch p2-chat-msg-ch)]
-        (condp = ch
+  (a/go-loop []
+    (let [[value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
+                                           [:chat-message]
+                                           123)]
+      (condp = ch
 
-          p1-chat-msg-ch
-          ;; Sending command asyncronously
-          (do (cu/write-cmd-to-chs
-               {:type :chat-message-response
-                :data {:player-id p1-id
-                       :message nil ;; message here
-                       }}
-               [p1-ch p2-ch] true)
-              (recur))
+        p1-ch
+        (do (cu/write-cmd-to-chs
+             [p1-ch p2-ch]
+             {:type :chat-message-response
+              :data {:player-id p1-id
+                     :message nil ;; message here
+                     }}
+             true)
+            (recur))
 
-          p2-chat-msg-ch
-          (do (cu/write-cmd-to-chs
-               {:type :chat-message-response
-                :data {:player-id p2-id
-                       :message nil}}
-               [p1-ch p2-ch] true)
-              (recur)))))))
+        p2-ch
+        (do (cu/write-cmd-to-chs
+             [p1-ch p2-ch]
+             {:type :chat-message-response
+              :data {:player-id p2-id
+                     :message nil}}
+             true)
+            (recur))))))
 
 (defn game-process [p1 p2]
   (let [game-uuid (u/gen-uuid)

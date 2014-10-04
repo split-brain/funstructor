@@ -1,6 +1,8 @@
-(ns funstructor.command-utils
+(ns funstructor.commands-utils
   (:require [clojure.core.async :as a]
-            [cheshire.core :as chs]))
+            [cheshire.core :as chs]
+
+            [funstructor.utils :as u]))
 
 (def server-side-commands
   #{:game-request
@@ -9,16 +11,17 @@
     :action
     :chat-message})
 
-(defn- encode-cmd [command]
+(defn encode-cmd [command]
   (chs/generate-string command))
 
-(defn- decode-cmd [in-str]
+(defn decode-cmd [in-str]
   (try
     (chs/parse-string in-str true)
     (catch java.io.IOException e {:type :decode-error :data in-str})))
 
 (defn branch-channel [ws-channel]
   ;; TODO: Figure out how to transform channel values
+  ;; Solution: use transduser
   (let [pub (a/pub ws-channel #(:type (decode-cmd %)))]
     {:write-ch ws-channel
      :branches
@@ -28,7 +31,7 @@
                (a/sub pub %1 %2)
                [%1 %2])
             server-side-commands
-            (repeat (a/chan))))}))
+            (repeat (a/chan nil (map decode-cmd)))))}))
 
 (defn get-branch-ch [br-ch cmd-type]
   (get-in br-ch [:branches cmd-type]))
@@ -36,21 +39,39 @@
 (defn get-branch-chs [br-ch & cmd-types]
   (mapv #(get-branch-ch br-ch %) cmd-types))
 
-(defn read-cmd-from-ch [ch]
-  (a/go
-    (decode-cmd (a/<! ch))))
+(defn find-br-ch-for-cmd-ch [cmd-ch br-chs]
+  (some
+   (fn [br-ch]
+     (let [all-cmd-chs (set (vals (:branches br-ch)))]
+       (when (all-cmd-chs cmd-ch)
+         br-ch)))
+   br-chs))
 
-(defn read-cmd [cmd-type br-ch]
-  (a/go
-    (a/<! (read-cmd-from-ch (get-branch-ch cmd-type)))))
+(defmacro read-cmd-from-chs [br-chs cmd-types & {:keys [timeout-ch]}]
+  `(let [br-chs# ~br-chs
+         timeout-ch# ~timeout-ch
+         cmd-chs# (vec (mapcat #(apply get-branch-chs % ~cmd-types) br-chs#))
+         [value# ch# :as tuple#] (a/alts! (if timeout-ch#
+                                            (conj cmd-chs# timeout-ch#)
+                                            cmd-chs#))]
+     (if (and timeout-ch# (= ch# timeout-ch#))
+       tuple#
+       [(and (not (nil? value#)) (decode-cmd value#))
+        (find-br-ch-for-cmd-ch ch# br-chs#)])))
 
-(defn write-cmd [cmd br-ch]
-  (a/go
-    (a/>! (:write-ch br-ch) (encode-cmd cmd))))
 
-(defn write-cmd-to-chs [cmd chs & async-send]
-  (a/go
-    (doseq [ch chs]
-      (if async-send
-        (write-cmd cmd ch)
-        (a/<! (write-cmd cmd ch))))))
+(defmacro read-cmd-by-type [br-ch cmd-type]
+  `(first
+    (read-cmd-from-chs [~br-ch]
+                       [~cmd-type])))
+
+(defmacro write-cmd-to-ch [br-ch cmd]
+  `(a/>! (:write-ch ~br-ch) (encode-cmd ~cmd)))
+
+(defmacro write-cmd-to-chs [br-chs cmd & async-write]
+  `(let [cmd# ~cmd
+         async-write# ~async-write]
+     (doseq [br-ch# ~br-chs]
+       (if async-write#
+         (a/go (write-cmd-to-ch br-ch# cmd#))
+         (write-cmd-to-ch br-ch# cmd#)))))
