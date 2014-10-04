@@ -32,16 +32,16 @@
 (defn branch-channel [ws-channel]
   ;; TODO: Figure out how to transform channel values
   ;; Solution: use transduser
-  (let [pub (a/pub ws-channel #(:type (decode-cmd %)))]
+  (let [pub-ch (a/pub ws-channel #(:type (decode-cmd %)))]
     {:write-ch ws-channel
      :branches
      (into {}
            (map
             #(do
-               (a/sub pub %1 %2)
+               (a/sub pub-ch %1 %2)
                [%1 %2])
             server-side-commands
-            (repeat (a/chan nil nil u/print-exception-stacktrace))))}))
+            (repeatedly #(a/chan nil nil u/print-exception-stacktrace))))}))
 
 (defn get-branch-ch [br-ch cmd-type]
   (get-in br-ch [:branches cmd-type]))

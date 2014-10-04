@@ -15,16 +15,16 @@
   (u/log "Starting handshake process")
   (let [br-ch (c/branch-channel ws-chan)]
     (a/go
-      (let [{:keys [user-name]} (c/read-cmd-by-type br-ch :game-request)
+      (let [cmd (c/read-cmd-by-type br-ch :game-request)
             player-uuid (u/gen-uuid)]
 
         (u/log "Received game-request. Sending response ...")
         (c/write-cmd-to-ch br-ch {:type :game-request-ok
-                                  :uuid player-uuid})
+                                  :data {:uuid player-uuid}})
         (a/>!
          pending-players-chan
          {:br-ch br-ch
-          :name user-name
+          :name (get-in cmd [:data :user-name])
           :uuid player-uuid})))))
 
 (defn- take-two-random-elements-from-set [set]
@@ -82,12 +82,11 @@
              (map cards/cards cards)))
 
           (assoc :enemy-board (f/get-board game-map opponent-id))
-          (assoc :current-turn (:current-turn game-map))
           (assoc :enemy-cards-num (count (f/get-cards game-map opponent-id)))
           (assoc :enemy-funstruct (f/get-funstruct game-map opponent-id))))))
 
 (defn make-game-update-data [game-map]
-  (select-keys game-map [:messages :win]))
+  (select-keys game-map [:messages :win :current-turn]))
 
 (defn make-update-data [game-map player-id]
   (merge (make-game-update-data game-map)
@@ -130,8 +129,9 @@
               timer (a/timeout turn-time-delay)]
     (let [current-turn (f/get-current-turn game-map)
           [value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
-                                           [:action :end-turn]
-                                           :timeout-ch timer)]
+                                          [:action :end-turn]
+                                          :timeout-ch timer)]
+      (u/log "Game update process received message: " value)
       (condp = ch
 
         p1-ch
@@ -157,7 +157,7 @@
                             game-map
                             current-turn
                             {:type :end-turn
-                             :game-id game-id})]
+                             :data {:game-id game-id}})]
           (u/log "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
           (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
           (recur new-game-map (a/timeout turn-time-delay)))))))
@@ -167,27 +167,29 @@
   (u/log "Starting game chat process")
   (a/go-loop []
     (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
-                                           [:chat-message])]
-      (condp = ch
+                                          [:chat-message])]
+      (u/log "Game chat process received message: " value)
+      (when-not (nil? value)
+        (condp = ch
 
-        p1-ch
-        (do (c/write-cmd-to-chs
-             [p1-ch p2-ch]
-             {:type :chat-message-response
-              :data {:player-id p1-id
-                     :message nil ;; message here
-                     }}
-             true)
-            (recur))
+          p1-ch
+          (do (c/write-cmd-to-chs
+               [p1-ch p2-ch]
+               {:type :chat-message-response
+                :data {:player-id p1-id
+                       :message (get-in value [:data :message])
+                       }}
+               true)
+              (recur))
 
-        p2-ch
-        (do (c/write-cmd-to-chs
-             [p1-ch p2-ch]
-             {:type :chat-message-response
-              :data {:player-id p2-id
-                     :message nil}}
-             true)
-            (recur))))))
+          p2-ch
+          (do (c/write-cmd-to-chs
+               [p1-ch p2-ch]
+               {:type :chat-message-response
+                :data {:player-id p2-id
+                       :message (get-in value [:data :message])}}
+               true)
+              (recur)))))))
 
 (defn- pre-game-exchange [game-id game-map p1-info p2-info]
   (u/log "Initiating pre game exchange")

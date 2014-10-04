@@ -28,6 +28,6 @@
   (go
     (>! log-chan args)))
 
-(defn debug [e]
-  (log e)
+(defn debug [str e]
+  (log str e)
   e)
