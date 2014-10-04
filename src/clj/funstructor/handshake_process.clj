@@ -75,10 +75,8 @@
       ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
       ;; Rework this in future ... with timeouts possibly
 
-
-      ;(cu/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
-      ;(cu/read-cmd-by-type (:br-ch p2-info) :start-game-ok)
-      )))
+      (cu/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
+      (cu/read-cmd-by-type (:br-ch p2-info) :start-game-ok))))
 
 (defn make-player-update-data [game-map player-id]
   (letfn [(fix-board [board]
@@ -126,10 +124,18 @@
 (defmulti apply-cmd (fn [game-map player-id cmd] (:type cmd)))
 
 (defmethod apply-cmd :action [game-map player-id cmd]
-  game-map)
+  (let [card-idx (get-in cmd [:data :card-idx])
+        target (get-in cmd [:data :target])
+        value (get-in cmd [:data :value])
+        funstr-idx (get-in cmd [:data :funstruct-idx])]
+    (f/use-card game-map player-id card-idx funstr-idx value)))
 
 (defmethod apply-cmd :end-turn [game-map player-id cmd]
-  game-map)
+  (-> game-map
+      (f/end-turn-for-player)
+      (#(if (f/turn-finished? %)
+          (f/end-turn %)
+          %))))
 
 (defmulti cmd-resets-timer? :type)
 
@@ -143,7 +149,7 @@
     (let [current-turn (f/get-current-turn game-map)
           [value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
                                            [:action :end-turn]
-                                           timer)]
+                                           :timeout-ch timer)]
       (condp = ch
 
         p1-ch
@@ -177,8 +183,7 @@
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
   (a/go-loop []
     (let [[value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
-                                           [:chat-message]
-                                           123)]
+                                           [:chat-message])]
       (condp = ch
 
         p1-ch
@@ -224,11 +229,3 @@
                          player1-chan
                          player2-id
                          player2-chan))))
-
-
-
-
-
-
-
-

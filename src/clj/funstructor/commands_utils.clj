@@ -49,12 +49,11 @@
 
 (defmacro read-cmd-from-chs [br-chs cmd-types & {:keys [timeout-ch]}]
   `(let [br-chs# ~br-chs
-         timeout-ch# ~timeout-ch
          cmd-chs# (vec (mapcat #(apply get-branch-chs % ~cmd-types) br-chs#))
-         [value# ch# :as tuple#] (a/alts! (if timeout-ch#
-                                            (conj cmd-chs# timeout-ch#)
+         [value# ch# :as tuple#] (a/alts! (if ~timeout-ch
+                                            (conj cmd-chs# ~timeout-ch)
                                             cmd-chs#))]
-     (if (and timeout-ch# (= ch# timeout-ch#))
+     (if (and ~timeout-ch (= ch# ~timeout-ch))
        tuple#
        [(and (not (nil? value#)) (decode-cmd value#))
         (find-br-ch-for-cmd-ch ch# br-chs#)])))
@@ -70,7 +69,7 @@
 
 (defmacro write-cmd-to-chs [br-chs cmd & async-write]
   `(let [cmd# ~cmd
-         async-write# ~async-write]
+         async-write# ~@async-write]
      (doseq [br-ch# ~br-chs]
        (if async-write#
          (a/go (write-cmd-to-ch br-ch# cmd#))
