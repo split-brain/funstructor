@@ -6,16 +6,13 @@
     (apply println args)))
 
 (defn gen-uuid []
-  (java.util.UUID/randomUUID))
-
-(defn uuid-from-string [uuid-str]
-  (java.util.UUID/fromString uuid-str))
+  (str (java.util.UUID/randomUUID)))
 
 (defn delete-from-vector [vector pos]
   (vec (concat (take pos vector)
                (drop (inc pos) vector))))
 
-(defn exception-stacktrace-printer [e]
+(defn print-exception-stacktrace [e]
   (.printStackTrace e))
 
 ;; Logging routines

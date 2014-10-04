@@ -7,24 +7,28 @@
             [funstructor.utils :as u]))
 
 (def turn-time-delay 60000)
-(def pending-take-delay 5000)
+(def pending-take-delay 2000)
 
 (def pending-players-chan (a/chan))
 
 (defn handshake-process [ws-chan pending-players-chan]
+  (u/log "Starting handshake process")
   (let [br-ch (c/branch-channel ws-chan)]
-     (a/go
+    (a/go
       (let [{:keys [user-name]} (c/read-cmd-by-type br-ch :game-request)
             player-uuid (u/gen-uuid)]
+
+        (u/log "Received game-request. Sending response ...")
         (c/write-cmd-to-ch br-ch {:type :game-request-ok
-                                   :uuid player-uuid})
-        (a/>! {:br-ch br-ch
-               :name user-name
-               :uuid player-uuid}
-              pending-players-chan)))))
+                                  :uuid player-uuid})
+        (a/>!
+         pending-players-chan
+         {:br-ch br-ch
+          :name user-name
+          :uuid player-uuid})))))
 
 (defn- take-two-random-elements-from-set [set]
-  (and (< (count set) 2)
+  (and (>= (count set) 2)
        (let [set-vec (vec set)
              set-count (count set)
              idx1 (rand-int set-count)
@@ -43,42 +47,18 @@
 
         timeout-chan
         (if-let [[p1 p2] (take-two-random-elements-from-set pending-infos)]
-          (do (game-process p1 p2)
-              (recur (a/timeout pending-take-delay)
-                     (-> pending-infos
-                         (disj p1)
-                         (disj p2))))
+          (do
+            (game-process p1 p2)
+            (recur (a/timeout pending-take-delay)
+                   (-> pending-infos
+                       (disj p1)
+                       (disj p2))))
           (recur (a/timeout pending-take-delay)
                  pending-infos))
 
         (recur timeout-chan
-               (conj pending-infos))
+               (conj pending-infos value))
         ))))
-
-(defn- pre-game-exchange [game-id game-map p1-info p2-info]
-  (let [p1-goal (f/get-goal game-map (:uuid p1-info))
-        p2-goal (f/get-goal game-map (:uuid p2-info))]
-    (a/go
-      (c/write-cmd-to-ch
-       (:br-ch p1-info)
-       {:type :start-game
-        :game-id game-id
-        :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
-        :goal-name (:name p1-goal)
-        :goal-string (:raw p1-goal)})
-      (c/write-cmd-to-ch
-       (:br-ch p2-info)
-       {:type :start-game
-        :game-id game-id
-        :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
-        :goal-name (:name p2-goal)
-        :goal-string (:raw p2-goal)})
-
-      ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
-      ;; Rework this in future ... with timeouts possibly
-
-      (c/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
-      (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok))))
 
 (defn make-player-update-data [game-map player-id]
   (letfn [(fix-board [board]
@@ -145,7 +125,7 @@
 (defmethod cmd-resets-timer? :end-turn [_] true)
 
 (defn game-update-process [game-id initial-game-map p1-id p1-ch p2-id p2-ch]
-
+  (u/log "Starting game update process for game" game-id)
   (a/go-loop [game-map initial-game-map
               timer (a/timeout turn-time-delay)]
     (let [current-turn (f/get-current-turn game-map)
@@ -178,11 +158,13 @@
                             current-turn
                             {:type :end-turn
                              :game-id game-id})]
+          (u/log "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
           (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
           (recur new-game-map (a/timeout turn-time-delay)))))))
 
 
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
+  (u/log "Starting game chat process")
   (a/go-loop []
     (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                            [:chat-message])]
@@ -207,7 +189,40 @@
              true)
             (recur))))))
 
+(defn- pre-game-exchange [game-id game-map p1-info p2-info]
+  (u/log "Initiating pre game exchange")
+  (let [p1-goal (f/get-goal game-map (:uuid p1-info))
+        p2-goal (f/get-goal game-map (:uuid p2-info))]
+    (a/go
+      (c/write-cmd-to-ch
+       (:br-ch p1-info)
+       {:type :start-game
+        :data {:game-id game-id
+               :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
+               :goal-name (:name p1-goal)
+               :goal-string (:raw p1-goal)}})
+      (c/write-cmd-to-ch
+       (:br-ch p2-info)
+       {:type :start-game
+        :data {:game-id game-id
+               :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
+               :goal-name (:name p2-goal)
+               :goal-string (:raw p2-goal)}})
+
+      ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
+      ;; Rework this in future ... with timeouts possibly
+
+      (c/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
+      (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok)
+
+      (send-game-updates game-map
+                         (:uuid p1-info)
+                         (:br-ch p1-info)
+                         (:uuid p2-info)
+                         (:br-ch p2-info)))))
+
 (defn game-process [p1 p2]
+  (u/log "Starting game process")
   (let [game-uuid (u/gen-uuid)
         player1-id (:uuid p1)
         player1-chan (:br-ch p1)
@@ -216,7 +231,7 @@
         player2-chan (:br-ch p2)
         player2-name (:name p2)
 
-        initial-game-map (f/make-game player1-id player2-id player1-name player2-name)]
+        initial-game-map (f/init-game (f/make-game player1-id player2-id player1-name player2-name))]
 
     (a/go
       (a/<! (pre-game-exchange game-uuid initial-game-map p1 p2))

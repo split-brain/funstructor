@@ -11,6 +11,8 @@
     :action
     :chat-message})
 
+;; TODO: Create make function for every command
+
 (defn encode-cmd [command]
   (chs/generate-string command))
 
@@ -21,8 +23,11 @@
            {:type :ws-error
             :data error}
            (try
-             (chs/parse-string in-str true)
-             (catch java.io.IOException e {:type :decode-error :data in-str}))))))
+             (update-in
+              (chs/parse-string message true)
+              [:type]
+              keyword)
+             (catch java.io.IOException e {:type :decode-error :data message}))))))
 
 (defn branch-channel [ws-channel]
   ;; TODO: Figure out how to transform channel values
@@ -36,7 +41,7 @@
                (a/sub pub %1 %2)
                [%1 %2])
             server-side-commands
-            (repeat (a/chan nil (map decode-cmd)))))}))
+            (repeat (a/chan nil nil u/print-exception-stacktrace))))}))
 
 (defn get-branch-ch [br-ch cmd-type]
   (get-in br-ch [:branches cmd-type]))

@@ -22,8 +22,8 @@
   (GET "/" [] (resource-response "index.html" {:root "public"}))
   (GET "/ws" [] (-> ws-handler
                     (wrap-websocket-handler {:format :str
-                                             :read-ch (a/chan nil nil #(.printStackTrace %))
-                                             :write-ch (a/chan nil nil #(.printStackTrace %))})))
+                                             :read-ch (a/chan nil nil u/print-exception-stacktrace)
+                                             :write-ch (a/chan nil nil u/print-exception-stacktrace)})))
   (route/resources "/")
   (route/not-found "Page not found"))
 
