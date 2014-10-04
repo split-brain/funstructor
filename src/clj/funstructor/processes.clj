@@ -131,36 +131,46 @@
           [value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                           [:action :end-turn]
                                           :timeout-ch timer)]
+
       (u/log "Game update process received message: " value)
-      (condp = ch
 
-        p1-ch
-        (if (= current-turn p1-id)
-          (let [new-game-map (apply-cmd game-map p1-id value)]
+      (if (and (not (= ch timer))
+               (nil? value))
+        (let [new-game-map (f/player-win game-map
+                                         (if (= ch p1-ch)
+                                           p2-id
+                                           p1-id))]
+          (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+
+        (condp = ch
+
+          p1-ch
+          (if (= current-turn p1-id)
+            (let [new-game-map (apply-cmd game-map p1-id value)]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map (if (cmd-resets-timer? value)
+                                    (a/timeout turn-time-delay)
+                                    timer)))
+            (recur game-map timer))
+
+          p2-ch
+          (if (= current-turn p2-id)
+            (let [new-game-map (apply-cmd game-map p2-id value)]
+              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+              (recur new-game-map (if (cmd-resets-timer? value)
+                                    (a/timeout turn-time-delay)
+                                    timer)))
+            (recur game-map timer))
+
+          timer
+          (let [new-game-map (apply-cmd
+                              game-map
+                              current-turn
+                              {:type :end-turn
+                               :data {:game-id game-id}})]
+            (u/log "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
             (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-            (recur new-game-map (if (cmd-resets-timer? value)
-                                  (a/timeout turn-time-delay)
-                                  timer)))
-          (recur game-map timer))
-
-        p2-ch
-        (if (= current-turn p2-id)
-          (let [new-game-map (apply-cmd game-map p2-id value)]
-            (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-            (recur new-game-map (if (cmd-resets-timer? value)
-                                  (a/timeout turn-time-delay)
-                                  timer)))
-          (recur game-map timer))
-
-        timer
-        (let [new-game-map (apply-cmd
-                            game-map
-                            current-turn
-                            {:type :end-turn
-                             :data {:game-id game-id}})]
-          (u/log "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
-          (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-          (recur new-game-map (a/timeout turn-time-delay)))))))
+            (recur new-game-map (a/timeout turn-time-delay))))))))
 
 
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]

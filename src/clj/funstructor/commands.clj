@@ -65,7 +65,7 @@
                                             cmd-chs#))]
      (if (and ~timeout-ch (= ch# ~timeout-ch))
        tuple#
-       [(and (not (nil? value#)) (decode-cmd value#))
+       [(if (nil? value#) value# (decode-cmd value#))
         (find-br-ch-for-cmd-ch ch# br-chs#)])))
 
 
