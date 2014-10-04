@@ -173,7 +173,7 @@
             (recur new-game-map (a/timeout turn-time-delay))))))))
 
 
-(defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
+(defn game-chat-process [game-id p1-id p1-ch p1-name p2-id p2-ch p2-name]
   (u/log "Starting game chat process")
   (a/go-loop []
     (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
@@ -186,7 +186,7 @@
           (do (c/write-cmd-to-chs
                [p1-ch p2-ch]
                {:type :chat-message-response
-                :data {:player-id p1-id
+                :data {:player-id p1-name
                        :message (get-in value [:data :message])
                        }}
                true)
@@ -196,7 +196,7 @@
           (do (c/write-cmd-to-chs
                [p1-ch p2-ch]
                {:type :chat-message-response
-                :data {:player-id p2-id
+                :data {:player-id p2-name
                        :message (get-in value [:data :message])}}
                true)
               (recur)))))))
@@ -256,5 +256,7 @@
       (game-chat-process game-uuid
                          player1-id
                          player1-chan
+                         player1-name
                          player2-id
-                         player2-chan))))
+                         player2-chan
+                         player2-name))))
