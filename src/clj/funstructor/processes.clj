@@ -1,20 +1,22 @@
-(ns funstructor.handshake-process
+(ns funstructor.processes
   (:require [clojure.core.async :as a]
 
             [funstructor.cards-functions :as f]
-            [funstructor.commands-utils :as cu]
+            [funstructor.commands :as c]
             [funstructor.cards :as cards]
             [funstructor.utils :as u]))
 
 (def turn-time-delay 60000)
 (def pending-take-delay 5000)
 
+(def pending-players-chan (a/chan))
+
 (defn handshake-process [ws-chan pending-players-chan]
-  (let [br-ch (cu/branch-channel ws-chan)]
+  (let [br-ch (c/branch-channel ws-chan)]
      (a/go
-      (let [{:keys [user-name]} (cu/read-cmd-by-type br-ch :game-request)
+      (let [{:keys [user-name]} (c/read-cmd-by-type br-ch :game-request)
             player-uuid (u/gen-uuid)]
-        (cu/write-cmd-to-ch br-ch {:type :game-request-ok
+        (c/write-cmd-to-ch br-ch {:type :game-request-ok
                                    :uuid player-uuid})
         (a/>! {:br-ch br-ch
                :name user-name
@@ -57,14 +59,14 @@
   (let [p1-goal (f/get-goal game-map (:uuid p1-info))
         p2-goal (f/get-goal game-map (:uuid p2-info))]
     (a/go
-      (cu/write-cmd-to-ch
+      (c/write-cmd-to-ch
        (:br-ch p1-info)
        {:type :start-game
         :game-id game-id
         :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
         :goal-name (:name p1-goal)
         :goal-string (:raw p1-goal)})
-      (cu/write-cmd-to-ch
+      (c/write-cmd-to-ch
        (:br-ch p2-info)
        {:type :start-game
         :game-id game-id
@@ -75,8 +77,8 @@
       ;; TODO: Assuming that client is good guy and will send us start-game-ok cmd
       ;; Rework this in future ... with timeouts possibly
 
-      (cu/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
-      (cu/read-cmd-by-type (:br-ch p2-info) :start-game-ok))))
+      (c/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
+      (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok))))
 
 (defn make-player-update-data [game-map player-id]
   (letfn [(fix-board [board]
@@ -117,8 +119,8 @@
                           :data (make-update-data game-map p1-id)}
           p2-game-update {:type :game-update
                           :data (make-update-data game-map p2-id)}]
-      (cu/write-cmd-to-ch p1-ch p1-game-update)
-      (cu/write-cmd-to-ch p2-ch p2-game-update))))
+      (c/write-cmd-to-ch p1-ch p1-game-update)
+      (c/write-cmd-to-ch p2-ch p2-game-update))))
 
 
 (defmulti apply-cmd (fn [game-map player-id cmd] (:type cmd)))
@@ -147,7 +149,7 @@
   (a/go-loop [game-map initial-game-map
               timer (a/timeout turn-time-delay)]
     (let [current-turn (f/get-current-turn game-map)
-          [value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
+          [value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                            [:action :end-turn]
                                            :timeout-ch timer)]
       (condp = ch
@@ -182,12 +184,12 @@
 
 (defn game-chat-process [game-id p1-id p1-ch p2-id p2-ch]
   (a/go-loop []
-    (let [[value ch] (cu/read-cmd-from-chs [p1-ch p2-ch]
+    (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                            [:chat-message])]
       (condp = ch
 
         p1-ch
-        (do (cu/write-cmd-to-chs
+        (do (c/write-cmd-to-chs
              [p1-ch p2-ch]
              {:type :chat-message-response
               :data {:player-id p1-id
@@ -197,7 +199,7 @@
             (recur))
 
         p2-ch
-        (do (cu/write-cmd-to-chs
+        (do (c/write-cmd-to-chs
              [p1-ch p2-ch]
              {:type :chat-message-response
               :data {:player-id p2-id

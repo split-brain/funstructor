@@ -9,24 +9,13 @@
             [clojure.core.async :as a]
             [compojure.core :refer [defroutes GET]]
 
-            [funstructor.commands :as commands]
+            [funstructor.processes :as p]
             [funstructor.utils :as u])
   (:gen-class))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (u/log "Opened connection from" (:remote-addr req))
-  (a/go-loop []
-    (let [{:keys [message error] :as msg} (a/<! ws-channel)]
-      (u/log "Received message" msg)
-
-
-      (if (nil? msg)
-        (commands/handle-command (commands/disconnected-command) ws-channel)
-        (do
-          (if error
-            (u/printerr "Received error: " msg)
-            (commands/handle-command (commands/decode-command message) ws-channel))
-          (recur))))))
+  (p/handshake-process ws-channel p/pending-players-chan))
 
 (defroutes app-routes
   (GET "/cljs" [] (redirect "index-cljs.html"))
@@ -51,5 +40,5 @@
               (or (System/getenv "PORT") "8080"))]
     (u/logging-process)
     (u/log "Server started on port " port)
-    (commands/pending-checker)
+    (p/pending-checker-process p/pending-players-chan)
     (run-server application {:port port :join? false})))

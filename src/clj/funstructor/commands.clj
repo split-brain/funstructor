@@ -1,4 +1,4 @@
-(ns funstructor.commands-utils
+(ns funstructor.commands
   (:require [clojure.core.async :as a]
             [cheshire.core :as chs]
 
@@ -14,10 +14,15 @@
 (defn encode-cmd [command]
   (chs/generate-string command))
 
-(defn decode-cmd [in-str]
-  (try
-    (chs/parse-string in-str true)
-    (catch java.io.IOException e {:type :decode-error :data in-str})))
+(defn decode-cmd [in-msg]
+  (let [{:keys [message error]} in-msg]
+    (and in-msg
+         (if error
+           {:type :ws-error
+            :data error}
+           (try
+             (chs/parse-string in-str true)
+             (catch java.io.IOException e {:type :decode-error :data in-str}))))))
 
 (defn branch-channel [ws-channel]
   ;; TODO: Figure out how to transform channel values
