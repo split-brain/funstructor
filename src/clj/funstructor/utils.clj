@@ -1,12 +1,14 @@
 (ns funstructor.utils
   (:require [clojure.core.async :refer [chan >! <! go go-loop timeout]]))
 
+(def id-counter (atom 0))
+
+(defn next-id! []
+  (swap! id-counter inc))
+
 (defn printerr [& args]
   (binding [*out* *err*]
     (apply println args)))
-
-(defn gen-uuid []
-  (str (java.util.UUID/randomUUID)))
 
 (defn delete-from-vector [vector pos]
   (vec (concat (take pos vector)

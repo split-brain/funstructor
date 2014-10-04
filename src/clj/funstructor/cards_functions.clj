@@ -69,8 +69,8 @@
 (defn turn-finished? [game]
   (= 2 (:turn-ends game)))
 
-(defn get-player-state [game uuid]
-  (get-in game [:players uuid]))
+(defn get-player-state [game id]
+  (get-in game [:players id]))
 
 (defn get-players [game]
   (keys (get-in game [:players])))
@@ -478,7 +478,7 @@
 
 ;; TODO exception safe
 (defn use-card
-  "Player Key:  UUID of player
+  "Player Key:  ID of player
      Card Pos:  index of card in :cards vector
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]

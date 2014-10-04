@@ -16,16 +16,17 @@
   (let [br-ch (c/branch-channel ws-chan)]
     (a/go
       (let [cmd (c/read-cmd-by-type br-ch :game-request)
-            player-uuid (u/gen-uuid)]
+            player-id (u/next-id!)]
 
-        (u/log "Received game-request. Sending response ...")
+        (u/log "Received game-request from player " player-id ". Sending response ...")
         (c/write-cmd-to-ch br-ch {:type :game-request-ok
-                                  :data {:uuid player-uuid}})
+                                  ;; TODO: Replace uuid with id on client side
+                                  :data {:uuid player-id}})
         (a/>!
          pending-players-chan
          {:br-ch br-ch
           :name (get-in cmd [:data :user-name])
-          :uuid player-uuid})))))
+          :id player-id})))))
 
 (defn- take-two-random-elements-from-set [set]
   (and (>= (count set) 2)
@@ -174,7 +175,7 @@
 
 
 (defn game-chat-process [game-id p1-id p1-ch p1-name p2-id p2-ch p2-name]
-  (u/log "Starting game chat process")
+  (u/log "Starting game chat process for game " game-id)
   (a/go-loop []
     (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                           [:chat-message])]
@@ -202,22 +203,22 @@
               (recur)))))))
 
 (defn- pre-game-exchange [game-id game-map p1-info p2-info]
-  (u/log "Initiating pre game exchange")
-  (let [p1-goal (f/get-goal game-map (:uuid p1-info))
-        p2-goal (f/get-goal game-map (:uuid p2-info))]
+  (u/log "Initiating pre game exchange for game " game-id)
+  (let [p1-goal (f/get-goal game-map (:id p1-info))
+        p2-goal (f/get-goal game-map (:id p2-info))]
     (a/go
       (c/write-cmd-to-ch
        (:br-ch p1-info)
        {:type :start-game
         :data {:game-id game-id
-               :enemy (f/get-player-name-by-id game-map (:uuid p2-info))
+               :enemy (f/get-player-name-by-id game-map (:id p2-info))
                :goal-name (:name p1-goal)
                :goal-string (:raw p1-goal)}})
       (c/write-cmd-to-ch
        (:br-ch p2-info)
        {:type :start-game
         :data {:game-id game-id
-               :enemy (f/get-player-name-by-id game-map (:uuid p1-info))
+               :enemy (f/get-player-name-by-id game-map (:id p1-info))
                :goal-name (:name p2-goal)
                :goal-string (:raw p2-goal)}})
 
@@ -228,32 +229,31 @@
       (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok)
 
       (send-game-updates game-map
-                         (:uuid p1-info)
+                         (:id p1-info)
                          (:br-ch p1-info)
-                         (:uuid p2-info)
+                         (:id p2-info)
                          (:br-ch p2-info)))))
 
 (defn game-process [p1 p2]
-  (u/log "Starting game process")
-  (let [game-uuid (u/gen-uuid)
-        player1-id (:uuid p1)
+  (let [game-id (u/next-id!)
+        player1-id (:id p1)
         player1-chan (:br-ch p1)
         player1-name (:name p1)
-        player2-id (:uuid p2)
+        player2-id (:id p2)
         player2-chan (:br-ch p2)
         player2-name (:name p2)
 
         initial-game-map (f/init-game (f/make-game player1-id player2-id player1-name player2-name))]
-
+    (u/log "Starting game process for players " player1-id  player2-id " and game " game-id)
     (a/go
-      (a/<! (pre-game-exchange game-uuid initial-game-map p1 p2))
-      (game-update-process game-uuid
+      (a/<! (pre-game-exchange game-id initial-game-map p1 p2))
+      (game-update-process game-id
                            initial-game-map
                            player1-id
                            player1-chan
                            player2-id
                            player2-chan)
-      (game-chat-process game-uuid
+      (game-chat-process game-id
                          player1-id
                          player1-chan
                          player1-name
