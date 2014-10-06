@@ -1,11 +1,11 @@
 (ns funstructor.view
-  (:require [reagent.core :as reagent :refer [atom]]))
+  (:require [reagent.core :as r)))
 
 (defn ^:export get-element [id]
   (.getElementById js/document id))
 
 (defn render [component]
-  (reagent/render-component [component] (get-element "app")))
+  (r/render-component [component] (get-element "app")))
 
 (defn- opponent-field []
   [:div.opponent-field])

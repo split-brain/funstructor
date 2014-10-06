@@ -46,6 +46,7 @@
                          :output-wrapper false
                          :closure-warnings {:non-standard-jsdoc :off}}}]}
 
-  :profiles {:uberjar {:aot :all}}
+  :profiles {:uberjar {:aot :all}
+             :dev {:plugins [[com.cemerick/austin "0.1.5"]]}}
 
   :main funstructor.core)

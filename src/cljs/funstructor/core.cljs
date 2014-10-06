@@ -1,9 +1,8 @@
 (ns funstructor.core
-  (:require
-            [chord.client :refer [ws-ch]]
+  (:require [chord.client :refer [ws-ch]]
             [cljs.core.async :refer [chan <! >! put! close! timeout]]
-            [reagent.core :as r :refer [atom]]
-            [funstructor.view :as v :refer [render]])
+            [reagent.core :as r]
+            [funstructor.view :as v])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn process-msg [msg ch]
