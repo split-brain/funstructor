@@ -17,38 +17,39 @@
 
 
 (defn get-player-name-by-id [game player]
-  (get-in game [:player-uuid-map player]))
+  (get-in game [:players player :name]))
 
 (defn- gap []
   {:terminal :gap
    :value nil})
 
-(defn- make-player-state [goal opponent]
-  {:ready false
+(defn- make-player-state [goal opponent name]
+  {:name name
    :opponent opponent
    :cards []
    :funstruct [(gap)]
    :goal goal
    :board []})
 
-(defn make-game [p1 p2]
+(defn make-game [p1-id p2-id p1-name p2-name]
   (->
    {:players
     (let [[f1 f2] (base/get-two-random-funstructs)]
-      {p1 (make-player-state f1 p2)
-       p2 (make-player-state f2 p1)})
-    :current-turn p1
+      {p1-id (make-player-state f1 p2-id p1-name)
+       p2-id (make-player-state f2 p1-id p2-name)})
+    :current-turn p1-id
     :turn-ends 0
     :turn 1
     :messages []
-    :player-uuid-map {} ;; uuid -> name
-    :win nil}
-))
+    :win nil}))
 
 (defn player-win [game player & reason]
   (-> game
       (assoc :win player)
       (log-message (or reason ""))))
+
+(defn get-current-turn [game]
+  (:current-turn game))
 
 (defn get-game-players [game]
   (keys (:players game)))
@@ -68,8 +69,8 @@
 (defn turn-finished? [game]
   (= 2 (:turn-ends game)))
 
-(defn get-player-state [game uuid]
-  (get-in game [:players uuid]))
+(defn get-player-state [game id]
+  (get-in game [:players id]))
 
 (defn get-players [game]
   (keys (get-in game [:players])))
@@ -477,7 +478,7 @@
 
 ;; TODO exception safe
 (defn use-card
-  "Player Key:  UUID of player
+  "Player Key:  ID of player
      Card Pos:  index of card in :cards vector
          Args:  additional args specific for function"
   [game-map player-key card-pos & args]
