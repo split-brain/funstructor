@@ -1,5 +1,6 @@
 (ns funstructor.processes
   (:require [clojure.core.async :as a]
+            [taoensso.timbre :as t]
 
             [funstructor.cards-functions :as f]
             [funstructor.commands :as c]
@@ -12,13 +13,13 @@
 (def pending-players-chan (a/chan))
 
 (defn handshake-process [ws-chan pending-players-chan]
-  (u/log "Starting handshake process")
+  (t/info "Starting handshake process")
   (let [br-ch (c/branch-channel ws-chan)]
     (a/go
       (let [cmd (c/read-cmd-by-type br-ch :game-request)
             player-id (u/next-id!)]
 
-        (u/log "Received game-request from player " player-id ". Sending response ...")
+        (t/info "Received game-request from player" player-id ". Sending response ...")
         (c/write-cmd-to-ch br-ch {:type :game-request-ok
                                   ;; TODO: Replace uuid with id on client side
                                   :data {:uuid player-id}})
@@ -106,11 +107,8 @@
 (defmulti apply-cmd (fn [game-map player-id cmd] (:type cmd)))
 
 (defmethod apply-cmd :action [game-map player-id cmd]
-  (let [card-idx (get-in cmd [:data :card-idx])
-        target (get-in cmd [:data :target])
-        value (get-in cmd [:data :value])
-        funstr-idx (get-in cmd [:data :funstruct-idx])]
-    (f/use-card game-map player-id card-idx funstr-idx value)))
+  (let [{:keys [card-idx target value funstruct-idx]} (:data cmd)]
+    (f/use-card game-map player-id card-idx funstruct-idx value)))
 
 (defmethod apply-cmd :end-turn [game-map player-id cmd]
   (-> game-map
@@ -125,7 +123,7 @@
 (defmethod cmd-resets-timer? :end-turn [_] true)
 
 (defn game-update-process [game-id initial-game-map p1-id p1-ch p2-id p2-ch]
-  (u/log "Starting game update process for game" game-id)
+  (t/info "Starting game update process for game" game-id)
   (a/go-loop [game-map initial-game-map
               timer (a/timeout turn-time-delay)]
     (let [current-turn (f/get-current-turn game-map)
@@ -133,7 +131,7 @@
                                           [:action :end-turn]
                                           :timeout-ch timer)]
 
-      (u/log "Game update process received message: " value)
+      (t/info "Game update process received message: " value)
 
       (if (and (not (= ch timer))
                (nil? value))
@@ -169,17 +167,17 @@
                               current-turn
                               {:type :end-turn
                                :data {:game-id game-id}})]
-            (u/log "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
+            (t/info "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
             (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
             (recur new-game-map (a/timeout turn-time-delay))))))))
 
 
 (defn game-chat-process [game-id p1-id p1-ch p1-name p2-id p2-ch p2-name]
-  (u/log "Starting game chat process for game " game-id)
+  (t/info "Starting game chat process for game " game-id)
   (a/go-loop []
     (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
                                           [:chat-message])]
-      (u/log "Game chat process received message: " value)
+      (t/info "Game chat process received message: " value)
       (when-not (nil? value)
         (condp = ch
 
@@ -203,7 +201,7 @@
               (recur)))))))
 
 (defn- pre-game-exchange [game-id game-map p1-info p2-info]
-  (u/log "Initiating pre game exchange for game " game-id)
+  (t/info "Initiating pre game exchange for game" game-id)
   (let [p1-goal (f/get-goal game-map (:id p1-info))
         p2-goal (f/get-goal game-map (:id p2-info))]
     (a/go
@@ -244,7 +242,7 @@
         player2-name (:name p2)
 
         initial-game-map (f/init-game (f/make-game player1-id player2-id player1-name player2-name))]
-    (u/log "Starting game process for players " player1-id  player2-id " and game " game-id)
+    (t/info "Starting game process for players" player1-id  player2-id "and game" game-id)
     (a/go
       (a/<! (pre-game-exchange game-id initial-game-map p1 p2))
       (game-update-process game-id

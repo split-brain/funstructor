@@ -8,13 +8,14 @@
             [chord.http-kit :refer [wrap-websocket-handler]]
             [clojure.core.async :as a]
             [compojure.core :refer [defroutes GET]]
+            [taoensso.timbre :as t]
 
             [funstructor.processes :as p]
             [funstructor.utils :as u])
   (:gen-class))
 
 (defn ws-handler [{:keys [ws-channel] :as req}]
-  (u/log "Opened connection from" (:remote-addr req))
+  (t/info "Opened connection from" (:remote-addr req))
   (p/handshake-process ws-channel p/pending-players-chan))
 
 (defroutes app-routes
@@ -42,7 +43,7 @@
     (let [port (Integer/parseInt
                 (or (System/getenv "PORT") "8080"))]
       (u/logging-process)
-      (u/log "Server started on port " port)
+      (t/info "Server started on port " port)
       (p/pending-checker-process p/pending-players-chan)
       (let [stop-fn (run-server application {:port port :join? false})]
         (reset! stop-server-fn stop-fn)))))

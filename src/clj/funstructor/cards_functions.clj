@@ -1,5 +1,7 @@
 (ns funstructor.cards-functions
   (:require
+   [taoensso.timbre :as t]
+
    [funstructor.utils :as u]
    [funstructor.funstruct-base :as base]
    [funstructor.cards :as c]))
@@ -450,7 +452,7 @@
 (defmethod apply-card
   :default
   [game-map player-key card & args]
-  (u/log "Unsupported card played " card)
+  (t/error "Unsupported card played " card)
   game-map)
 
 
@@ -505,7 +507,7 @@
           )
       (catch Exception e
         (do
-          (u/log
+          (t/error
            (.getMessage e)
            "\n"
            "Critical Error:\n\n"
