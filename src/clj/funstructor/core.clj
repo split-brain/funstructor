@@ -31,14 +31,37 @@
   (handler/site app-routes))
 
 (def application (-> handler
-                     ;(st/wrap-stacktrace)
                      (reload/wrap-reload)
                      ))
 
+(def stop-server-fn (atom nil))
+
+(defn start-server []
+  (if @stop-server-fn
+    (throw (RuntimeException. "Server is already running"))
+    (let [port (Integer/parseInt
+                (or (System/getenv "PORT") "8080"))]
+      (u/logging-process)
+      (u/log "Server started on port " port)
+      (p/pending-checker-process p/pending-players-chan)
+      (let [stop-fn (run-server application {:port port :join? false})]
+        (reset! stop-server-fn stop-fn)))))
+
+(defn stop-server []
+  (if-let [stop-fn @stop-server-fn]
+    (do (stop-fn)
+        (reset! stop-server-fn nil))
+    (throw (RuntimeException. "Server has not been started"))))
+
 (defn -main [& args]
-  (let [port (Integer/parseInt
-              (or (System/getenv "PORT") "8080"))]
-    (u/logging-process)
-    (u/log "Server started on port " port)
-    (p/pending-checker-process p/pending-players-chan)
-    (run-server application {:port port :join? false})))
+  (start-server))
+
+
+
+
+
+
+
+
+
+
