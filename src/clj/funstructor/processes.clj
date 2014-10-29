@@ -94,14 +94,14 @@
   (merge (make-game-update-data game-map)
          (make-player-update-data game-map player-id)))
 
-(defn send-game-updates [game-map p1-id p1-ch p2-id p2-ch]
+(defn send-game-updates [game-map p1-info p2-info]
   (a/go
     (let [p1-game-update {:type :game-update
-                          :data (make-update-data game-map p1-id)}
+                          :data (make-update-data game-map (:id p1-info))}
           p2-game-update {:type :game-update
-                          :data (make-update-data game-map p2-id)}]
-      (c/write-cmd-to-ch p1-ch p1-game-update)
-      (c/write-cmd-to-ch p2-ch p2-game-update))))
+                          :data (make-update-data game-map (:id p2-info))}]
+      (c/write-cmd-to-ch (:br-ch p1-info) p1-game-update)
+      (c/write-cmd-to-ch (:br-ch p2-info) p2-game-update))))
 
 
 (defmulti apply-cmd (fn [game-map player-id cmd] (:type cmd)))
@@ -122,83 +122,87 @@
 (defmethod cmd-resets-timer? :action [_] false)
 (defmethod cmd-resets-timer? :end-turn [_] true)
 
-(defn game-update-process [game-id initial-game-map p1-id p1-ch p2-id p2-ch]
+
+
+(defn- handle-command [sender-id cmd game-map timer]
+  (if (= (f/get-current-turn game-map) sender-id)
+    (let [new-game-map (apply-cmd game-map sender-id cmd)]
+      [new-game-map (if (cmd-resets-timer? cmd)
+                      (a/timeout turn-time-delay)
+                      timer)])
+    [game-map timer]))
+
+(defn game-update-process [game-id game-state-ch initial-game-map p1-info p2-info]
   (t/info "Starting game update process for game" game-id)
-  (a/go-loop [game-map initial-game-map
-              timer (a/timeout turn-time-delay)]
-    (let [current-turn (f/get-current-turn game-map)
-          [value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
-                                          [:action :end-turn]
-                                          :timeout-ch timer)]
+  (let [{p1-id :id p1-ch :br-ch} p1-info
+        {p2-id :id p2-ch :br-ch} p2-info]
+    (a/go-loop [game-map initial-game-map
+                timer (a/timeout turn-time-delay)]
+      (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
+                                            [:action :end-turn]
+                                            :timeout-ch timer)]
 
-      (t/info "Game update process received message: " value)
+        (t/info "Game update process received message: " value)
 
-      (if (and (not (= ch timer))
-               (nil? value))
-        (let [new-game-map (f/player-win game-map
-                                         (if (= ch p1-ch)
-                                           p2-id
-                                           p1-id))]
-          (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
+        (if (and (not (= ch timer))
+                 (nil? value))
+          (let [new-game-map (f/player-win game-map
+                                           (if (= ch p1-ch)
+                                             p2-id
+                                             p1-id))]
+            (a/>! game-state-ch new-game-map))
 
-        (condp = ch
+          (condp = ch
 
-          p1-ch
-          (if (= current-turn p1-id)
-            (let [new-game-map (apply-cmd game-map p1-id value)]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map (if (cmd-resets-timer? value)
-                                    (a/timeout turn-time-delay)
-                                    timer)))
-            (recur game-map timer))
+            p1-ch
+            (let [[new-game-map timer] (handle-command p1-id value game-map timer)]
+              (a/>! game-state-ch new-game-map)
+              (recur new-game-map timer))
 
-          p2-ch
-          (if (= current-turn p2-id)
-            (let [new-game-map (apply-cmd game-map p2-id value)]
-              (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-              (recur new-game-map (if (cmd-resets-timer? value)
-                                    (a/timeout turn-time-delay)
-                                    timer)))
-            (recur game-map timer))
+            p2-ch
+            (let [[new-game-map timer] (handle-command p2-id value game-map timer)]
+              (a/>! game-state-ch new-game-map)
+              (recur new-game-map timer))
 
-          timer
-          (let [new-game-map (apply-cmd
-                              game-map
-                              current-turn
-                              {:type :end-turn
-                               :data {:game-id game-id}})]
-            (t/info "Turn time of player" current-turn " has elapsed. Forcing next turn ...")
-            (a/<! (send-game-updates new-game-map p1-id p1-ch p2-id p2-ch))
-            (recur new-game-map (a/timeout turn-time-delay))))))))
+            timer
+            (let [[new-game-map timer] (handle-command (f/get-current-turn game-map)
+                                                       {:type :end-turn
+                                                        :data {:game-id game-id}}
+                                                       timer)]
+              (t/info "Turn time of player" (f/get-current-turn game-map) "has elapsed. Forcing next turn ...")
+              (a/>! game-state-ch new-game-map)
+              (recur new-game-map timer))))))))
 
 
-(defn game-chat-process [game-id p1-id p1-ch p1-name p2-id p2-ch p2-name]
+(defn game-chat-process [game-id p1-info p2-info]
   (t/info "Starting game chat process for game " game-id)
-  (a/go-loop []
-    (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
-                                          [:chat-message])]
-      (t/info "Game chat process received message: " value)
-      (when-not (nil? value)
-        (condp = ch
+  (let [{p1-name :name p1-ch :br-ch} p1-info
+        {p2-name :name p2-ch :br-ch} p2-info]
+    (a/go-loop []
+      (let [[value ch] (c/read-cmd-from-chs [p1-ch p2-ch]
+                                            [:chat-message])]
+        (t/info "Game chat process received message: " value)
+        (when-not (nil? value)
+          (condp = ch
 
-          p1-ch
-          (do (c/write-cmd-to-chs
-               [p1-ch p2-ch]
-               {:type :chat-message-response
-                :data {:player-id p1-name
-                       :message (get-in value [:data :message])
-                       }}
-               true)
-              (recur))
+            p1-ch
+            (do (c/write-cmd-to-chs
+                 [p1-ch p2-ch]
+                 {:type :chat-message-response
+                  :data {:player-id p1-name
+                         :message (get-in value [:data :message])
+                         }}
+                 true)
+                (recur))
 
-          p2-ch
-          (do (c/write-cmd-to-chs
-               [p1-ch p2-ch]
-               {:type :chat-message-response
-                :data {:player-id p2-name
-                       :message (get-in value [:data :message])}}
-               true)
-              (recur)))))))
+            p2-ch
+            (do (c/write-cmd-to-chs
+                 [p1-ch p2-ch]
+                 {:type :chat-message-response
+                  :data {:player-id p2-name
+                         :message (get-in value [:data :message])}}
+                 true)
+                (recur))))))))
 
 (defn- pre-game-exchange [game-id game-map p1-info p2-info]
   (t/info "Initiating pre game exchange for game" game-id)
@@ -224,37 +228,36 @@
       ;; Rework this in future ... with timeouts possibly
 
       (c/read-cmd-by-type (:br-ch p1-info) :start-game-ok)
-      (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok)
+      (c/read-cmd-by-type (:br-ch p2-info) :start-game-ok))))
 
-      (send-game-updates game-map
-                         (:id p1-info)
-                         (:br-ch p1-info)
-                         (:id p2-info)
-                         (:br-ch p2-info)))))
+(defn game-state-emitter-process [game-id game-state-ch p1-info p2-info]
+  (a/go-loop [game-state (a/<! game-state-ch)]
+    (when game-state
+      (send-game-updates game-state p1-info p2-info)
+      (recur (a/<! game-state-ch)))))
 
-(defn game-process [p1 p2]
+(defn game-process [p1-info p2-info]
   (let [game-id (u/next-id!)
-        player1-id (:id p1)
-        player1-chan (:br-ch p1)
-        player1-name (:name p1)
-        player2-id (:id p2)
-        player2-chan (:br-ch p2)
-        player2-name (:name p2)
+        game-state-ch (a/chan) ;; TODO: Consider using sliding buffer for this chan
 
-        initial-game-map (f/init-game (f/make-game player1-id player2-id player1-name player2-name))]
-    (t/info "Starting game process for players" player1-id  player2-id "and game" game-id)
+        initial-game-map (f/init-game (f/make-game
+                                       (:id p1-info)
+                                       (:id p2-info)
+                                       (:name p1-info)
+                                       (:name p2-info)))]
+
+
+    (t/info "Starting game process for players" (:id p1-info) (:id p2-info) "and game" game-id)
     (a/go
-      (a/<! (pre-game-exchange game-id initial-game-map p1 p2))
+      (game-state-emitter-process game-id game-state-ch p1-info p2-info)
+      (a/<! (pre-game-exchange game-id initial-game-map p1-info p2-info))
+      (a/>! game-state-ch initial-game-map)
       (game-update-process game-id
+                           game-state-ch
                            initial-game-map
-                           player1-id
-                           player1-chan
-                           player2-id
-                           player2-chan)
+                           p1-info
+                           p2-info)
       (game-chat-process game-id
-                         player1-id
-                         player1-chan
-                         player1-name
-                         player2-id
-                         player2-chan
-                         player2-name))))
+                         p1-info
+                         p2-info))))
+
