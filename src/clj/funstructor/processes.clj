@@ -10,8 +10,6 @@
 (def turn-time-delay 60000)
 (def pending-take-delay 2000)
 
-(def pending-players-chan (a/chan))
-
 (defn handshake-process [ws-chan pending-players-chan]
   (t/info "Starting handshake process")
   (let [br-ch (c/branch-channel ws-chan)]
@@ -58,8 +56,9 @@
           (recur (a/timeout pending-take-delay)
                  pending-infos))
 
-        (recur timeout-chan
-               (conj pending-infos value))
+        (when-not (nil? value)
+          (recur timeout-chan
+                 (conj pending-infos value)))
         ))))
 
 (defn make-player-update-data [game-map player-id]
@@ -240,7 +239,7 @@
   (let [game-id (u/next-id!)
         game-state-ch (a/chan) ;; TODO: Consider using sliding buffer for this chan
 
-        initial-game-map (f/init-game (f/make-game
+        initial-game-map (f/init-game (f/make-gameme
                                        (:id p1-info)
                                        (:id p2-info)
                                        (:name p1-info)

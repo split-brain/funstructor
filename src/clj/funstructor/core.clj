@@ -14,9 +14,28 @@
             [funstructor.utils :as u])
   (:gen-class))
 
+(def channels-to-close (atom #{}))
+
+(defn register-channel [ch]
+  (swap! channels-to-close #(conj % ch)))
+
+(defn close-registered-channels []
+  (doseq [ch @channels-to-close]
+    (a/close! ch))
+  (reset! channels-to-close #{}))
+
+
+
+
+
+
+
+(def pending-players-chan (atom nil))
+
 (defn ws-handler [{:keys [ws-channel] :as req}]
   (t/info "Opened connection from" (:remote-addr req))
-  (p/handshake-process ws-channel p/pending-players-chan))
+  (register-channel ws-channel)
+  (p/handshake-process ws-channel @pending-players-chan))
 
 (defroutes app-routes
   (GET "/cljs" [] (redirect "index-cljs.html"))
@@ -32,8 +51,11 @@
   (handler/site app-routes))
 
 (def application (-> handler
-                     (reload/wrap-reload)
-                     ))
+                     (reload/wrap-reload)))
+
+
+
+
 
 (def stop-server-fn (atom nil))
 
@@ -42,27 +64,19 @@
     (throw (RuntimeException. "Server is already running"))
     (let [port (Integer/parseInt
                 (or (System/getenv "PORT") "8080"))]
-      (u/logging-process)
       (t/info "Server started on port " port)
-      (p/pending-checker-process p/pending-players-chan)
+      (reset! pending-players-chan (a/chan))
+      (register-channel @pending-players-chan)
+      (p/pending-checker-process @pending-players-chan)
       (let [stop-fn (run-server application {:port port :join? false})]
         (reset! stop-server-fn stop-fn)))))
 
 (defn stop-server []
   (if-let [stop-fn @stop-server-fn]
     (do (stop-fn)
+        (close-registered-channels)
         (reset! stop-server-fn nil))
     (throw (RuntimeException. "Server has not been started"))))
 
 (defn -main [& args]
   (start-server))
-
-
-
-
-
-
-
-
-
-

@@ -34,16 +34,15 @@
    :board []})
 
 (defn make-game [p1-id p2-id p1-name p2-name]
-  (->
-   {:players
-    (let [[f1 f2] (base/get-two-random-funstructs)]
-      {p1-id (make-player-state f1 p2-id p1-name)
-       p2-id (make-player-state f2 p1-id p2-name)})
-    :current-turn p1-id
-    :turn-ends 0
-    :turn 1
-    :messages []
-    :win nil}))
+  {:players
+   (let [[f1 f2] (base/get-two-random-funstructs)]
+     {p1-id (make-player-state f1 p2-id p1-name)
+      p2-id (make-player-state f2 p1-id p2-name)})
+   :current-turn p1-id
+   :turn-ends 0
+   :turn 1
+   :messages []
+   :win nil})
 
 (defn player-win [game player & reason]
   (-> game
