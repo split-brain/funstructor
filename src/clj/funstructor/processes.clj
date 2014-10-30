@@ -239,7 +239,7 @@
   (let [game-id (u/next-id!)
         game-state-ch (a/chan) ;; TODO: Consider using sliding buffer for this chan
 
-        initial-game-map (f/init-game (f/make-gameme
+        initial-game-map (f/init-game (f/make-game
                                        (:id p1-info)
                                        (:id p2-info)
                                        (:name p1-info)
