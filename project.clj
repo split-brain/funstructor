@@ -14,6 +14,7 @@
                 [cheshire "5.3.1"]
                 [reagent "0.4.2"]
                 [com.taoensso/timbre "3.3.1"]
+                [midje "1.6.3"]
                 [javax.servlet/servlet-api "2.5"]
 
                 [com.cemerick/piggieback "0.1.3"]]
