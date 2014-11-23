@@ -4,6 +4,6 @@
 
 (deftest apply-unrecognized-card
   (testing "Should return unmodified game state when unrecognized card was applied to it."
-    (let [g (make-game :p1 :p2)
+    (let [g (make-game :p1 :p2 "player1" "player2")
           g' (apply-card g :p1 :missing-card)]
       (is (= g g')))))
