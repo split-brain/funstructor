@@ -13,4 +13,4 @@ deploy:
   app: funstructor
   on:
     repo: split-brain/funstructor
-  run: "lein run -m funstructor.core"
+
