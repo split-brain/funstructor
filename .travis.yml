@@ -6,3 +6,11 @@ jdk:
 notifications:
   recipients:
   - int.256h@gmail.com
+deploy:
+  provider: heroku
+  api_key:
+    secure: MRVao4yzCXMviWi1t/iPI5p3tU/cYz/s/nWE25bPXCsWDqoFpnPFbhwRQVqEZti9fng7/9o+LFvbeVq8iORFSZVni1OL8kQu+R0H5zOai8DmRappkNvLnANf4C7GhtKfbYhQM4hBaHq6PsYnhYqLYGfyfytx/VDKROzFXA+4zwo=
+  app: funstructor
+  on: master
+    repo: split-brain/funstructor
+  run: "lein run -m funstructor.core"
