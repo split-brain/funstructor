@@ -1,0 +1,8 @@
+language: clojure
+lein: lein2
+script: lein2 do clean, javac, test
+jdk:
+  - oraclejdk8
+notifications:
+  recipients:
+  - int.256h@gmail.com
