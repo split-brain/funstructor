@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/split-brain/funstructor.svg?branch=master)](https://travis-ci.org/split-brain)
+[![Build Status](https://travis-ci.org/split-brain/funstructor.svg?branch=master)](https://travis-ci.org/split-brain/funstructor)
 
 Funstructor is a turn-based multiplayer card game for the geek audience.
 We highly recommend you to go through [Tutorial](https://github.com/clojurecup2014/funstructor/blob/master/doc/help.md), it takes just few minutes.
