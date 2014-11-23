@@ -1,8 +1,8 @@
 # funstructor
 
-Turn-based multiplayer card game for the geek audience.
+[![Build Status](https://travis-ci.org/split-brain/funstructor.svg?branch=master)](https://travis-ci.org/split-brain)
 
-[<img src="https://github.com/clojurecup2014/funstructor/blob/master/doc/img/vote.jpeg">](https://clojurecup.com/#/apps/funstructor)
+Funstructor is a turn-based multiplayer card game for the geek audience. [Give it a try!](http://funstructor.herokuapp.com)
 
 
 ## Help
