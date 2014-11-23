@@ -36,7 +36,7 @@ var funs = funs || {};
     var ws;
 
     funs.websocket = {
-        _ws : new WebSocket("//" + BASE_URL + '/ws'),
+        _ws : new WebSocket("ws://" + BASE_URL + '/ws'),
         _events : {},
         send : function(m){
             if(typeof m !== 'string'){
