@@ -145,7 +145,7 @@
     "remove random terminal from the opponents funstruct"
     :target :self
     :type :mutator
-    :weight 300
+    :weight 50
     :img "mutator_random_shot.svg"}
 
    
@@ -257,7 +257,7 @@ and take 5 from deck"
     "get a copy of each card played by an opponent. Lasts 5 turns"
     :target :self
     :type :duration
-    :weight 300
+    :weight 40
     :turns-left 5
     :img "duration_duplicate.svg"}
 
@@ -267,7 +267,7 @@ and take 5 from deck"
     "each turn get one more card. Lasts 5 turns"
     :target :self
     :type :duration
-    :weight 300
+    :weight 40
     :turns-left 5
     :img "duration_good_times.svg"}
 
